@@ -1,0 +1,124 @@
+.header {
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  border: none;
+  padding: 10px;
+  margin: 0;
+  border-radius: 0;
+  height: 200px;
+  background-image: url("img/head.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("img/backgr.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3; /* степень прозрачности */
+  z-index: -1;
+}
+
+body {
+  margin: 0;
+  position: relative;
+  padding-top: 0;
+  /* уберите background-image отсюда */
+}
+
+.divider {
+  width: 100vw;
+  height: 2mm;
+  background-color: #333;
+  margin: 0;
+  border: 0;
+  position: relative;
+  z-index: 2;
+}
+
+h1 {
+  font-size: 6em;
+  color: #242323;
+  text-align: left;
+  margin: 30px 0 130px 460px;
+  opacity: 0.8;
+}
+
+.content {
+  font-size: 1.2em;
+  color: #242323;
+  text-align: left;
+  margin: 20px 0;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 5px;
+}
+
+.form {
+  max-width: 400px;
+  margin: 30px auto;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  opacity: 0.9;
+}
+
+.form p {
+  margin: 0 0 15px;
+  font-size: 1.1em;
+  text-align: center;
+  color: #412828;
+  min-width: 320px;
+  max-width: 400px;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.form-row label {
+  min-width: 140px;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.form-row input[type="text"],
+.form-row input[type="date"] {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+img#zodiac_img {
+  margin-top: 20px;
+  opacity: 0.5;
+  max-width: 120px;
+  height: 120px;
+}
+
+.img img {
+  width: 100%;
+  height: auto;
+}
+
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px; /* расстояние между блоками */
+  margin-top: 30px;
+}
