@@ -7,15 +7,21 @@
 
 </head>
 <body>
+    <div class="zodiac-container" id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(255,255,255,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <img src="img/zodiac/animation.png" alt="Загрузка..." style="width:80px; height:80px;" class="zodiac-wheel">
+    </div>
+
     <div class="header">
         <h1>Horoscopes</h1>
     </div>
+
     <div class="divider"></div>
+
     <div class ="form-container">
-    <img alt="Zodiac Signs" id="zodiac_img">
+    <!--<img alt="Zodiac Signs" id="zodiac_img">-->
 
     <form class="form">
-        <p>!Welcome to the Horoscope Excellent Finder! Enter your name, birthday, and the date you want to check your horoscope for.</p>   
+        <p>Welcome to the Horoscope Finder! Enter your name, birthday, and the date you want to check your horoscope for.</p>   
 
     <div class="form-row">
         <label for="user_name">Input your name:</label>
@@ -31,12 +37,11 @@
     </div>
     <button type="submit" id="submit_btn">Find out</button>
     </form>
-
-    <div class="img" id="chinese_img"></div>
     </div>
 
-    <div id="horoscope_result"></div>
-    <div class="img" id="zodiac_img"></div>
+    <form class="form-hidden" id="result_form">
+        <div class="horoscope" id="horoscope"></div>
+    </form>
     <script src="app.js"></script>
 </body>
 </html>
