@@ -58,11 +58,6 @@ function showZodiacImage(zodiac) {
   if (!imageContainer) return;
   let src = zodiac !== "unknown" ? `img/zodiac/${zodiac}.png` : "";
   imageContainer.src = src;
-  /*const imgDiv = document.getElementById("zodiac_img");
-    if (!imgDiv) return;
-    imgDiv.innerHTML = zodiac !== "unknown"
-        ? `<img src="img/zodiac/${zodiac}.png" alt="${zodiac}" style="height:80px;">`
-        : "";*/
 }
 
 document.getElementById("submit_btn").addEventListener("click", async (e) => {
@@ -111,13 +106,6 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
       });
       html += `</div>`;
 
-      // document.getElementById("horoscope").innerHTML = `
-      //<div class="horoscopeResult">
-      //  <img class="horoscope-bg" src="img/zodiac/${zodiac}.png" alt="Зодиак" />
-      //  ${html}
-      //</div>
-      //`;
-
       document.getElementById("horoscope").innerHTML = html;
 
       document.getElementById("result_form").classList.remove("form-hidden");
@@ -153,7 +141,7 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
     console.log("ChatGPT raw content parsed:", result);
 
     // Выводим структурированный гороскоп по разделам infoSections
-    let html = `<div class="horoscopeResult"> <h2>Гороскоп для ${info.name} (${info.zodiac})</h2>`;
+    let html = `<div class="horoscopeResult"> <h2>Horoscope for ${info.name} (${info.zodiac})</h2>`;
     infoSections.forEach((section) => {
       console.log(
         //   `Значение для ${section}: ${JSON.stringify(result[section]) || "-"}`
@@ -165,13 +153,6 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
     html += `</div>`;
 
     document.getElementById("horoscope").innerHTML = html;
-
-    // document.getElementById("horoscope").innerHTML = `
-    //<div class="horoscopeResult">
-    // <img class="horoscope-bg" src="img/zodiac/${zodiac}.png" alt="Зодиак" />
-    // ${html}
-    //</div>
-    //`;
 
     document.getElementById("result_form").classList.remove("form-hidden");
 
