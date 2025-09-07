@@ -36,27 +36,36 @@
         <h2 id="welcomeMessage"></h2>
     </div>
 
-    <div class ="form-container">
-    <!--<img alt="Zodiac Signs" id="zodiac_img">-->
 
-    <form class="form" method="post" action="#">
-        <p>Welcome to the Horoscope Finder! Enter your name, birthday, and the date you want to check your horoscope for.</p>   
+        <div class="form-container" id="guestFormContainer">
+            <form class="form" id="guestForm" method="post" action="#">
+                <p>Welcome to the Horoscope Finder! Enter your name, birthday, and the date you want to check your horoscope for.</p>
+                <div class="form-row">
+                    <label for="user_name">Input your name:</label>
+                    <input type="text" id="user_name" placeholder="Your name">
+                </div>
+                <div class="form-row">
+                    <label for="user_birthday">Input your birthday:</label>
+                    <input type="date" id="user_birthday" placeholder="Input your birthday">
+                </div>
+                <div class="form-row">
+                    <label for="user_date">Input date:</label>
+                    <input type="date" id="user_date" placeholder="Input date">
+                </div>
+                <button type="submit" id="submit_btn">Find out</button>
+            </form>
+        </div>
 
-    <div class="form-row">
-        <label for="user_name">Input your name:</label>
-        <input type="text" id="user_name" placeholder="Your name">
-    </div>
-    <div class="form-row">
-        <label for="user_birthday">Input your birthday:</label>
-        <input type="date" id="user_birthday" placeholder="Input your birthday">
-    </div>
-    <div class="form-row">
-        <label for="user_date">Input date:</label>
-        <input type="date" id="user_date" placeholder="Input date">
-    </div>
-    <button type="submit" id="submit_btn">Find out</button>
-    </form>
-    </div>
+        <div class="form-container" id="userFormContainer" style="display:none;">
+            <form class="form" id="userForm" method="post" action="#">
+                <p>Welcome to the Horoscope Finder! Enter the date you want to check your horoscope for.</p>
+                <div class="form-row">
+                    <label for="user_only_date">Input date:</label>
+                    <input type="date" id="user_only_date" placeholder="Input date">
+                </div>
+                <button type="submit" id="user_submit_btn">Find out</button>
+            </form>
+        </div>
 
     <form class="form-hidden" id="result_form">
         <div class="horoscope" id="horoscope"></div>
@@ -193,10 +202,40 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
-    <script src="modal-register.js"></script>
-    <script src="login.js"></script>
-    <script>
+        <script src="app.js"></script>
+        <script src="modal-register.js"></script>
+        <script src="login.js"></script>
+        <script>
+        // Switch forms based on login state
+        function switchHoroscopeForm() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const guestFormContainer = document.getElementById('guestFormContainer');
+            const userFormContainer = document.getElementById('userFormContainer');
+            if (isLoggedIn) {
+                guestFormContainer.style.display = 'none';
+                userFormContainer.style.display = 'block';
+                // Set today's date and min to today
+                var today = new Date().toISOString().split('T')[0];
+                var userDateInput = document.getElementById('user_only_date');
+                if (userDateInput) {
+                    userDateInput.value = today;
+                    userDateInput.setAttribute('min', today);
+                }
+            } else {
+                guestFormContainer.style.display = 'block';
+                userFormContainer.style.display = 'none';
+                // Set min for guest date input
+                var today = new Date().toISOString().split('T')[0];
+                var guestDateInput = document.getElementById('user_date');
+                if (guestDateInput) {
+                    guestDateInput.setAttribute('min', today);
+                }
+            }
+        }
+        // Call on load and after login/logout
+        document.addEventListener('DOMContentLoaded', switchHoroscopeForm);
+        window.addEventListener('storage', switchHoroscopeForm);
+        // Also call after login/logout in JS logic if needed
     function showLoginForm() {
         document.getElementById('loginModal').style.display = 'flex';
     }

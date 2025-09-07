@@ -1,3 +1,60 @@
+// --- Обработка новых форм для гостя и пользователя (userForm, guestForm) ---
+document.addEventListener("DOMContentLoaded", function () {
+  // Гостевая форма (с именем, датой рождения и датой)
+  const guestForm = document.getElementById("guestForm");
+  if (guestForm) {
+    guestForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      document.getElementById("submit_btn").click();
+    });
+  }
+  // Форма для залогиненного (только дата)
+  const userForm = document.getElementById("userForm");
+  if (userForm) {
+    userForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      // Собираем только дату и отправляем как для залогиненного
+      showLoading();
+      document.getElementById("horoscope").innerHTML = "";
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const dateInput = document.getElementById("user_only_date");
+      const today = new Date().toISOString().split("T")[0];
+      if (!dateInput.value || dateInput.value < today) {
+        alert(
+          "Date of horoscope cannot be in the past. Please, select a valid date."
+        );
+        hideLoading();
+        return;
+      }
+      const requestData = {
+        name: user.name,
+        zodiac: user.zodiac,
+        date: dateInput.value,
+        birthday: user.birthday,
+        userId: user.id,
+        isLoggedIn: true,
+      };
+      try {
+        const response = await fetch("/api/horoscope", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestData),
+        });
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+        const result = await response.json();
+        localStorage.setItem("horoscopeResult", JSON.stringify(result));
+        displayHoroscopeResult(result, requestData);
+        hideLoading();
+      } catch (err) {
+        console.error("Error:", err);
+        document.getElementById("horoscope").innerHTML =
+          "Ошибка получения гороскопа.";
+        hideLoading();
+      }
+    });
+  }
+});
 // Проверяем авторизацию при загрузке страницы
 document.addEventListener("DOMContentLoaded", function () {
   // Очищаем URL от потенциально конфиденциальных данных

@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     )
       return;
     if (profileBirthdayInput.value) {
+      // Если введен день рождения
       profileNoBirthdayCheckbox.checked = false;
       profileBirthdayInput.disabled = false;
       profileZodiacSelect.disabled = true;
@@ -30,11 +31,13 @@ document.addEventListener("DOMContentLoaded", function () {
         );
       }
     } else if (profileNoBirthdayCheckbox.checked) {
+      // Если чекбокс отмечен (не хочу указывать день рождения)
       profileBirthdayInput.value = "";
       profileBirthdayInput.disabled = true;
       profileZodiacSelect.disabled = false;
       profileZodiacGroup.style.display = "block";
     } else {
+      // Если ничего не выбрано
       profileBirthdayInput.disabled = false;
       profileZodiacSelect.disabled = true;
       profileZodiacGroup.style.display = "block";
@@ -161,6 +164,8 @@ document.addEventListener("DOMContentLoaded", function () {
           updateAuthInterface();
           // Заполняем форму данными пользователя
           fillUserForm(result.user);
+          // Переключаем форму гороскопа для залогиненного
+          if (typeof switchHoroscopeForm === "function") switchHoroscopeForm();
 
           // Временно отключаем автоматическое отображение гороскопа при входе
           // Гороскоп будет отображаться только по явному запросу пользователя
@@ -625,6 +630,9 @@ function logout() {
   // Очищаем форму
   clearUserForm();
 
+  // Переключаем форму гороскопа для гостя
+  if (typeof switchHoroscopeForm === "function") switchHoroscopeForm();
+
   logSuccess("Выход выполнен успешно");
 }
 
@@ -679,10 +687,38 @@ function fillProfileForm(user) {
     profileEmail.value = user.email || "";
   }
 
-  // Заполняем дату рождения
+  // Заполняем дату рождения, чекбокс и зодиак
   const profileBirthday = document.getElementById("profileBirthday");
-  if (profileBirthday && user.birthday) {
-    profileBirthday.value = user.birthday;
+  const profileNoBirthdayCheckbox =
+    document.getElementById("profileNoBirthday");
+  const profileZodiac = document.getElementById("profileZodiac");
+  const profileZodiacGroup = document.getElementById("profileZodiacGroup");
+  if (profileBirthday && profileNoBirthdayCheckbox && profileZodiac) {
+    if (user.birthday) {
+      profileBirthday.value = user.birthday;
+      profileNoBirthdayCheckbox.checked = false;
+      profileBirthday.disabled = false;
+      profileZodiac.disabled = true;
+      if (typeof getZodiacSignFromString === "function") {
+        profileZodiac.value = getZodiacSignFromString(user.birthday);
+      }
+      if (profileZodiacGroup) profileZodiacGroup.style.display = "block";
+    } else if (user.zodiac) {
+      // Нет дня рождения, но есть зодиак
+      profileBirthday.value = "";
+      profileNoBirthdayCheckbox.checked = true;
+      profileBirthday.disabled = true;
+      profileZodiac.disabled = false;
+      profileZodiac.value = user.zodiac;
+      if (profileZodiacGroup) profileZodiacGroup.style.display = "block";
+    } else {
+      // Нет ни дня рождения, ни зодиака
+      profileBirthday.value = "";
+      profileNoBirthdayCheckbox.checked = false;
+      profileBirthday.disabled = false;
+      profileZodiac.disabled = true;
+      if (profileZodiacGroup) profileZodiacGroup.style.display = "block";
+    }
   }
 
   // Очищаем поля паролей
