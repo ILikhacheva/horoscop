@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Horoscopes</title>
+    <link rel="icon" type="image/png" href="img/zodiac/animation.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="zodiac.js"></script>
+    <script src="client-utils.js"></script>
+
+</head>
+<body>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (document.getElementById('zodiac')) fillZodiacSelect('zodiac');
+            });
+        </script>
+    <div class="zodiac-container" id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(255,255,255,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <img src="img/zodiac/animation.png" alt="Loading..." style="width:80px; height:80px;" class="zodiac-wheel">
+    </div>
+
+    <div class="header">
+        <h1>Horoscopes</h1>
+        <div class="auth-buttons">
+            <div id="guestButtons" class="guest-buttons">
+                <button class="auth-btn" onclick="showLoginForm()">Log in</button>
+            </div>
+            <div id="userButtons" class="user-buttons" style="display: none;">
+                <!--<span id="userName" class="user-name"></span>-->
+                <button class="auth-btn" onclick="openProfile()">My profile</button>
+                <button class="auth-btn logout-btn" onclick="logout()">Log out</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Приветствие пользователя -->
+    <div id="userWelcome" class="user-welcome" style="display: none;">
+        <h2 id="welcomeMessage"></h2>
+    </div>
+
+    <div class ="form-container">
+    <!--<img alt="Zodiac Signs" id="zodiac_img">-->
+
+    <form class="form" method="post" action="#">
+        <p>Welcome to the Horoscope Finder! Enter your name, birthday, and the date you want to check your horoscope for.</p>   
+
+    <div class="form-row">
+        <label for="user_name">Input your name:</label>
+        <input type="text" id="user_name" placeholder="Your name">
+    </div>
+    <div class="form-row">
+        <label for="user_birthday">Input your birthday:</label>
+        <input type="date" id="user_birthday" placeholder="Input your birthday">
+    </div>
+    <div class="form-row">
+        <label for="user_date">Input date:</label>
+        <input type="date" id="user_date" placeholder="Input date">
+    </div>
+    <button type="submit" id="submit_btn">Find out</button>
+    </form>
+    </div>
+
+    <form class="form-hidden" id="result_form">
+        <div class="horoscope" id="horoscope"></div>
+    </form>
+
+    <!-- Модальное окно входа -->
+    <div id="loginModal" class="login-modal" style="display:none;">
+        <div class="login-container">
+            <button class="close-btn" onclick="closeLoginForm()" title="Close">×</button>
+            <h2 style="text-align:center; color:#4a4a4a; margin-bottom:30px;">Log in</h2>
+            <form id="loginForm" method="post" action="#">
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" name="email" required>
+                    <div class="error-message" id="loginEmailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword" name="password" required>
+                    <div class="error-message" id="loginPasswordError"></div>
+                </div>
+                <div class="success-message" id="loginSuccessMessage"></div>
+                <div class="error-message" id="loginGeneralError"></div>
+                <div class="buttons">
+                    <button type="submit" class="btn btn-primary">Log in</button>
+                </div>
+            </form>
+            <div class="register-link" style="margin-top:20px;">
+                <a href="#" onclick="openRegisterModal()">Register</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно регистрации -->
+    <div id="registerModal" class="register-modal" style="display:none;">
+        <div class="register-container">
+            <button class="close-btn" onclick="closeRegisterModal()" title="Close">×</button>
+            <h2 style="text-align:center; color:#4a4a4a; margin-bottom:30px;">Register</h2>
+            <form id="registerForm" method="post" action="#">
+                <div class="form-group">
+                    <label for="registerName">First name:</label>
+                    <input type="text" id="registerName" name="FirstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email:</label>
+                    <input type="email" id="registerEmail" name="email" required>
+                </div>
+                <div class="form-group" id="birthdayGroup">
+                    <label for="birthday">Birthday:</label>
+                    <input type="date" id="birthday" name="birthday">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="checkbox" id="noBirthday" name="noBirthday" style="vertical-align:middle;">
+                            <label for="noBirthday" style="margin:0;">I don't want to share my birthday</label>
+                        </div>
+                </div>
+                <div class="form-group" id="zodiacGroup" style="display:none;">
+                    <label for="zodiac">Zodiac:</label>
+                    <select id="zodiac" name="zodiac"></select>
+                    <div class="error-message" id="zodiacError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password:</label>
+                    <input type="password" id="registerPassword" name="password" required>
+                </div>
+                <div class="success-message" id="registerSuccessMessage"></div>
+                <div class="error-message" id="registerGeneralError"></div>
+                <div class="buttons">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeRegisterModal()">Cancel</button>
+                </div>
+            </form>
+            <div class="login-link" style="margin-top:20px; text-align:center;">
+                <a href="#" onclick="openLoginModalFromRegister()">Log in</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно профиля -->
+    <div id="profileModal" class="login-modal" style="display:none;">
+        <div class="login-container">
+            <button class="close-btn" onclick="closeProfileModal()" title="Close">×</button>
+            <h2 style="text-align:center; color:#4a4a4a; margin-bottom:30px;">My Profile</h2>
+            <form id="profileForm" method="post" action="#">
+                <div class="form-group">
+                    <label for="profileName">Name:</label>
+                    <input type="text" id="profileName" name="name" required>
+                    <div class="error-message" id="profileNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="profileEmail">Email:</label>
+                    <input type="email" id="profileEmail" name="email" required disabled>
+                    <small style="color: #666;">You cannot change your email</small>
+                </div>
+                <div class="form-group">
+                    <label for="profileBirthday">Birthday:</label>
+                    <input type="date" id="profileBirthday" name="birthday">
+                    <div class="error-message" id="profileBirthdayError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="profilePassword">New Password (leave blank if you don't want to change):</label>
+                    <input type="password" id="profilePassword" name="password">
+                    <div class="error-message" id="profilePasswordError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="profilePasswordConfirm">Confirm New Password:</label>
+                    <input type="password" id="profilePasswordConfirm" name="passwordConfirm">
+                    <div class="error-message" id="profilePasswordConfirmError"></div>
+                </div>
+                <div class="success-message" id="profileSuccessMessage"></div>
+                <div class="error-message" id="profileGeneralError"></div>
+                <div class="buttons">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="modal-register.js"></script>
+    <script src="login.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fillZodiacSelect('zodiac');
+        const birthdayInput = document.getElementById('birthday');
+        const zodiacSelect = document.getElementById('zodiac');
+        const noBirthdayCheckbox = document.getElementById('noBirthday');
+        const zodiacGroup = document.getElementById('zodiacGroup');
+        const birthdayGroup = document.getElementById('birthdayGroup');
+
+        // Используем функцию getZodiacSignFromString из client-utils.js
+
+        birthdayInput.addEventListener('change', function() {
+            if (birthdayInput.value) {
+                const zodiac = getZodiacSignFromString(birthdayInput.value);
+                zodiacSelect.value = zodiac;
+                zodiacSelect.disabled = true;
+                zodiacGroup.style.display = 'block';
+            } else {
+                zodiacSelect.value = '';
+                zodiacSelect.disabled = false;
+                if (!noBirthdayCheckbox.checked) zodiacGroup.style.display = 'none';
+            }
+        });
+
+        noBirthdayCheckbox.addEventListener('change', function() {
+            if (noBirthdayCheckbox.checked) {
+                birthdayInput.value = '';
+                birthdayGroup.style.display = 'none';
+                zodiacSelect.value = '';
+                zodiacSelect.disabled = false;
+                zodiacGroup.style.display = 'block';
+            } else {
+                birthdayGroup.style.display = 'block';
+                zodiacSelect.value = '';
+                zodiacSelect.disabled = false;
+                zodiacGroup.style.display = 'none';
+            }
+        });
+
+        // При инициализации
+        if (birthdayInput.value) {
+            const zodiac = getZodiacSignFromString(birthdayInput.value);
+            zodiacSelect.value = zodiac;
+            zodiacSelect.disabled = true;
+            zodiacGroup.style.display = 'block';
+        }
+    });
+    </script>
+    <script>
+    function showLoginForm() {
+        document.getElementById('loginModal').style.display = 'flex';
+    }
+    function closeLoginForm() {
+        document.getElementById('loginModal').style.display = 'none';
+    }
+    function openRegisterModal() {
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('registerModal').style.display = 'flex';
+        // Ограничить календарь до текущей даты
+        var birthdayInput = document.getElementById('birthday');
+        if (birthdayInput) {
+            var today = new Date().toISOString().split('T')[0];
+            birthdayInput.setAttribute('max', today);
+        }
+    }
+    function closeRegisterModal() {
+        document.getElementById('registerModal').style.display = 'none';
+    }
+    function openLoginModalFromRegister() {
+        document.getElementById('registerModal').style.display = 'none';
+        document.getElementById('loginModal').style.display = 'flex';
+    }
+    
+    function showProfileModal() {
+        document.getElementById('profileModal').style.display = 'flex';
+    }
+    
+    function closeProfileModal() {
+        document.getElementById('profileModal').style.display = 'none';
+    }
+    </script>
+</body>
+</html>
