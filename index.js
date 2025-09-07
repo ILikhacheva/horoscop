@@ -1,7 +1,7 @@
 const path = require("path");
 const express = require("express");
 const bcrypt = require("bcryptjs");
-require("dotenv").config();
+require("dotenv").config({ override: true });
 
 const app = express();
 app.use(express.json());
@@ -176,12 +176,12 @@ app.post("/api/register", async (req, res) => {
       password: password ? "***скрыт***" : "отсутствует",
     });
 
-    // Валидация
-    if (!email || !name || !zodiac || !password) {
+    // Валидация: email, name, password и zodiac обязательны, birthday может быть пустым
+    if (!email || !name || !password || !zodiac) {
       console.log("❌ Ошибка валидации: не все поля заполнены");
       return res.status(400).json({
         success: false,
-        message: "Все поля обязательны для заполнения",
+        message: "All fields are required",
       });
     }
 
@@ -190,7 +190,7 @@ app.post("/api/register", async (req, res) => {
       console.log("❌ Ошибка валидации email:", email);
       return res.status(400).json({
         success: false,
-        message: "Неверный формат email",
+        message: "Wrong email format",
       });
     }
 
@@ -199,7 +199,7 @@ app.post("/api/register", async (req, res) => {
       console.log("❌ Ошибка валидации пароля: слишком короткий");
       return res.status(400).json({
         success: false,
-        message: "Пароль должен содержать минимум 6 символов",
+        message: "Password must be at least 6 characters long",
       });
     }
 
@@ -208,7 +208,7 @@ app.post("/api/register", async (req, res) => {
       console.log("❌ Ошибка валидации даты рождения:", birthday);
       return res.status(400).json({
         success: false,
-        message: "Неверный формат даты рождения",
+        message: "Wrong birthday format",
       });
     }
 
@@ -217,7 +217,7 @@ app.post("/api/register", async (req, res) => {
       console.log("❌ Ошибка валидации знака зодиака:", zodiac);
       return res.status(400).json({
         success: false,
-        message: "Неверный знак зодиака",
+        message: "Wrong zodiac sign",
       });
     }
 
@@ -278,7 +278,7 @@ app.post("/api/register", async (req, res) => {
       console.log("📄 Результат INSERT:", result.rows[0]);
 
       const newUser = result.rows[0];
-      logSuccess("Новый пользователь зарегистрирован:", {
+      logSuccess("The new user has been registered:", {
         id: newUser.id_user,
         email: newUser.email,
         name: newUser.first_name,
@@ -287,7 +287,7 @@ app.post("/api/register", async (req, res) => {
 
       res.json({
         success: true,
-        message: "Регистрация прошла успешно!",
+        message: "Registration successful!",
         user: {
           id: newUser.id_user,
           email: newUser.email,
@@ -304,7 +304,7 @@ app.post("/api/register", async (req, res) => {
         // Unique constraint violation
         return res.status(400).json({
           success: false,
-          message: "Пользователь с таким email уже существует",
+          message: "User with this email already exists",
         });
       }
 
@@ -346,7 +346,7 @@ app.post("/api/login", async (req, res) => {
     if (userResult.rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "Неверный email или пароль",
+        message: "Wrong email or password",
       });
     }
 
@@ -369,6 +369,64 @@ app.post("/api/login", async (req, res) => {
       typeof user.birthday
     );
 
+    // Получаем гороскоп на сегодня, если он есть в БД
+    let todayHoroscope = null;
+    const today = new Date().toISOString().split("T")[0]; // Формат YYYY-MM-DD
+
+    try {
+      const horoscopeClient = await pool.connect();
+      const horoscopeResult = await horoscopeClient.query(
+        "SELECT response FROM horoscops WHERE id_user = $1 AND horoscop_date = $2",
+        [user.id_user, today]
+      );
+
+      if (horoscopeResult.rows.length > 0) {
+        try {
+          const responseData = horoscopeResult.rows[0].response;
+          console.log(`🔍 Тип данных в БД:`, typeof responseData);
+
+          console.log(
+            `🔍 Первые 100 символов:`,
+            String(responseData).substring(0, 100)
+          );
+
+          // Если это уже объект, используем как есть
+          if (typeof responseData === "object" && responseData !== null) {
+            todayHoroscope = responseData;
+            console.log(`✅ Гороскоп загружен как объект`);
+          } else {
+            // Если это строка, парсим JSON
+            todayHoroscope = JSON.parse(responseData);
+            console.log(`✅ Гороскоп загружен через JSON.parse`);
+          }
+
+          console.log(
+            `✅ Найден гороскоп на сегодня (${today}) для пользователя ${user.email}`
+          );
+        } catch (parseError) {
+          console.error(
+            `❌ Ошибка парсинга JSON гороскопа:`,
+            parseError.message
+          );
+          console.error(
+            `❌ Содержимое response:`,
+            horoscopeResult.rows[0].response
+          );
+          todayHoroscope = null;
+        }
+      } else {
+        console.log(
+          `ℹ️ Гороскоп на сегодня (${today}) не найден для пользователя ${user.email}`
+        );
+      }
+      horoscopeClient.release();
+    } catch (horoscopeError) {
+      console.error(
+        "❌ Ошибка при получении гороскопа на сегодня:",
+        horoscopeError.message
+      );
+    }
+
     res.json({
       success: true,
       message: "Вход выполнен успешно!",
@@ -379,6 +437,7 @@ app.post("/api/login", async (req, res) => {
         birthday: user.birthday, // теперь это уже строка в правильном формате
         zodiac: user.zodiac,
       },
+      todayHoroscope: todayHoroscope, // Добавляем гороскоп на сегодня
     });
   } catch (error) {
     console.error("Ошибка авторизации:", error);
@@ -423,7 +482,7 @@ app.get("/api/debug-dates", async (req, res) => {
 // Endpoint для обновления профиля пользователя
 app.post("/api/update-profile", async (req, res) => {
   try {
-    const { email, name, birthday, password } = req.body;
+    const { email, name, birthday, zodiac, password } = req.body;
 
     if (!email || !name) {
       return res.status(400).json({
@@ -453,11 +512,25 @@ app.post("/api/update-profile", async (req, res) => {
     let updateParams = [name];
     let paramIndex = 2;
 
-    // Добавляем дату рождения, если указана
+    // birthday и zodiac
     if (birthday) {
       updateQuery += `, birthday = $${paramIndex}`;
       updateParams.push(birthday);
       paramIndex++;
+      // zodiac вычисляется автоматически на клиенте и приходит в req.body
+      if (zodiac) {
+        updateQuery += `, zodiac = $${paramIndex}`;
+        updateParams.push(zodiac);
+        paramIndex++;
+      }
+    } else {
+      // birthday отсутствует, zodiac выбирается вручную
+      updateQuery += `, birthday = NULL`;
+      if (zodiac) {
+        updateQuery += `, zodiac = $${paramIndex}`;
+        updateParams.push(zodiac);
+        paramIndex++;
+      }
     }
 
     // Добавляем пароль, если указан
@@ -480,7 +553,7 @@ app.post("/api/update-profile", async (req, res) => {
 
     res.json({
       success: true,
-      message: "Профиль успешно обновлен!",
+      message: "The profile has been successfully updated!",
     });
   } catch (error) {
     console.error("Ошибка обновления профиля:", error);
@@ -536,6 +609,67 @@ app.post("/api/horoscope", async (req, res) => {
   try {
     const { name, zodiac, date, birthday, isLoggedIn, userId } = req.body || {};
 
+    // Переменная для переключения между AI и mock данными
+    // 0 = использовать OpenAI API, 1 = использовать тестовые данные
+    const USE_MOCK_DATA = 0; // Измените на 1 для использования тестовых данных
+
+    console.log(
+      `Запрос гороскопа: пользователь ID ${userId}, дата ${date}, залогинен: ${isLoggedIn}`
+    );
+
+    // Для залогиненных пользователей сначала проверяем БД
+    if (isLoggedIn && userId) {
+      console.log(
+        `🔍 Проверяем БД на наличие гороскопа для пользователя ${userId} на дату ${date}`
+      );
+
+      const client = await pool.connect();
+      try {
+        const existingHoroscope = await client.query(
+          "SELECT response FROM horoscops WHERE id_user = $1 AND horoscop_date = $2",
+          [userId, date]
+        );
+
+        if (existingHoroscope.rows.length > 0) {
+          console.log(`✅ Найден существующий гороскоп в БД для даты ${date}`);
+          try {
+            const responseData = existingHoroscope.rows[0].response;
+            let savedResponse;
+
+            // Если это уже объект, используем как есть
+            if (typeof responseData === "object" && responseData !== null) {
+              savedResponse = responseData;
+            } else {
+              // Если это строка, парсим JSON
+              savedResponse = JSON.parse(responseData);
+            }
+
+            // Добавляем небольшую задержку для имитации поиска
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            console.log(
+              `⏰ Задержка 1.5 секунды для имитации поиска завершена`
+            );
+
+            return res.json(savedResponse);
+          } catch (parseError) {
+            console.error(
+              `❌ Ошибка парсинга существующего гороскопа:`,
+              parseError.message
+            );
+            console.log(`ℹ️ Генерируем новый гороскоп из-за ошибки парсинга`);
+          }
+        } else {
+          console.log(
+            `ℹ️ Гороскоп на дату ${date} не найден в БД, генерируем новый`
+          );
+        }
+      } catch (dbError) {
+        console.error("❌ Ошибка при проверке БД:", dbError.message);
+      } finally {
+        client.release();
+      }
+    }
+
     const infoSections = [
       "General",
       "Work",
@@ -546,60 +680,12 @@ app.post("/api/horoscope", async (req, res) => {
       "Advice",
     ];
 
-    const prompt = `Ты астролог. Отвечай структурированным JSON с разделами: ${infoSections.join(
-      ", "
-    )}. 
-        Ответ на английском. Каждый раздел должен содержать один абзац с не менее 2 предложениями. 
-        Вот данные пользователя: Имя: ${name}, Знак зодиака: ${zodiac}, Дата гороскопа: ${date}. 
-        Сделай гороскоп на эту дату, используя эти данные. В разделе "General" обратись по имени.
-        Структура ответа должна быть строго такой:
-        {
-          "horoscope": {
-            "General": "...",
-            "Work": "...",
-            "Health": "...",
-            "Finance": "...",
-            "Travel": "...",
-            "Relationships": "...",
-            "Advice": "..."
-          }
-        }
-    
-    Ответь только JSON, без пояснений и текста.`;
+    let result;
 
-    try {
-      // Вызов OpenAI API для генерации гороскопа
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-      });
-
-      const result = JSON.parse(completion.choices[0].message.content);
-
-      // Сохраняем в БД только для залогиненных пользователей
-      if (isLoggedIn && userId) {
-        const client = await pool.connect();
-
-        try {
-          // Сохраняем гороскоп в базу данных
-          const insertResult = await client.query(
-            "INSERT INTO horoscops (id_user, horoscop_date, response) VALUES ($1, $2, $3) RETURNING id",
-            [userId, date, JSON.stringify(result)]
-          );
-        } catch (dbError) {
-          console.error("Ошибка сохранения в БД:", dbError.message);
-        } finally {
-          client.release();
-        }
-      }
-
-      res.json(result);
-    } catch (openaiError) {
-      console.error("OpenAI Error:", openaiError);
-
-      // Fallback на mock данные если OpenAI недоступен
-      const mockResult = {
+    if (USE_MOCK_DATA === 1) {
+      // Используем тестовые данные
+      console.log("Используются тестовые данные (mock)");
+      result = {
         horoscope: {
           General: `Hello ${name}! As a ${zodiac}, today brings exciting opportunities for personal growth and self-discovery. The stars align favorably for you, encouraging bold decisions and positive changes in your life.`,
           Work: "Your professional life shows promising developments today. New projects may come your way, and your creative abilities will be particularly sharp. Collaboration with colleagues will lead to innovative solutions.",
@@ -615,9 +701,107 @@ app.post("/api/horoscope", async (req, res) => {
             "Trust your intuition and embrace change with confidence. The universe supports your efforts toward personal transformation. Remember that patience and persistence will lead to remarkable achievements.",
         },
       };
-      console.log("Используются mock данные");
-      res.json(mockResult);
+    } else {
+      // Используем OpenAI API
+      const prompt = `Ты астролог. Отвечай структурированным JSON с разделами: ${infoSections.join(
+        ", "
+      )}. 
+          Ответ на английском. Каждый раздел должен содержать один абзац с не менее 2 предложениями. 
+          Вот данные пользователя: Имя: ${name}, Знак зодиака: ${zodiac}, Дата гороскопа: ${date}. 
+          Сделай гороскоп на эту дату, используя эти данные. В разделе "General" обратись по имени.
+          Структура ответа должна быть строго такой:
+          {
+            "horoscope": {
+              "General": "...",
+              "Work": "...",
+              "Health": "...",
+              "Finance": "...",
+              "Travel": "...",
+              "Relationships": "...",
+              "Advice": "..."
+            }
+          }
+      
+      Ответь только JSON, без пояснений и текста.`;
+
+      try {
+        console.log("Делаем запрос к OpenAI API");
+        // Вызов OpenAI API для генерации гороскопа
+        const completion = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+        });
+
+        result = JSON.parse(completion.choices[0].message.content);
+        console.log("Получен ответ от OpenAI API");
+      } catch (openaiError) {
+        console.error("OpenAI Error:", openaiError);
+
+        // Fallback на mock данные если OpenAI недоступен
+        console.log("OpenAI недоступен, используем тестовые данные");
+        result = {
+          horoscope: {
+            General: `Hello ${name}! As a ${zodiac}, today brings exciting opportunities for personal growth and self-discovery. The stars align favorably for you, encouraging bold decisions and positive changes in your life.`,
+            Work: "Your professional life shows promising developments today. New projects may come your way, and your creative abilities will be particularly sharp. Collaboration with colleagues will lead to innovative solutions.",
+            Health:
+              "Pay attention to your physical well-being today. A balanced diet and regular exercise will boost your energy levels significantly. Consider trying a new wellness routine or meditation practice.",
+            Finance:
+              "Financial opportunities are on the horizon, but careful planning is essential. Avoid impulsive purchases and focus on long-term investment strategies. A financial advisor's guidance could prove valuable.",
+            Travel:
+              "Travel plans may face minor delays, but these setbacks will lead to unexpected discoveries. Local exploration might bring more joy than distant journeys. Keep your travel documents updated.",
+            Relationships:
+              "Your charm and charisma are at their peak today. Single individuals may encounter someone special, while those in relationships should focus on deeper communication. Family bonds strengthen through shared activities.",
+            Advice:
+              "Trust your intuition and embrace change with confidence. The universe supports your efforts toward personal transformation. Remember that patience and persistence will lead to remarkable achievements.",
+          },
+        };
+      }
     }
+
+    // Сохраняем в БД для залогиненных пользователей
+    if (isLoggedIn && userId) {
+      console.log(
+        `Сохраняем гороскоп в БД для пользователя ID: ${userId}, дата: ${date}`
+      );
+
+      const client = await pool.connect();
+      try {
+        // Проверяем, существует ли уже гороскоп на эту дату для этого пользователя
+        const existingHoroscope = await client.query(
+          "SELECT id FROM horoscops WHERE id_user = $1 AND horoscop_date = $2",
+          [userId, date]
+        );
+
+        if (existingHoroscope.rows.length === 0) {
+          // Сохраняем новый гороскоп
+          const insertResult = await client.query(
+            "INSERT INTO horoscops (id_user, horoscop_date, response) VALUES ($1, $2, $3) RETURNING id",
+            [userId, date, JSON.stringify(result)]
+          );
+
+          console.log(
+            `✅ Гороскоп сохранен в БД с ID: ${insertResult.rows[0].id}`
+          );
+        } else {
+          console.log(
+            "ℹ️ Гороскоп на эту дату уже существует, пропускаем сохранение"
+          );
+        }
+      } catch (dbError) {
+        console.error("❌ Ошибка сохранения в БД:", dbError.message);
+        console.error("❌ Детали ошибки:", dbError);
+      } finally {
+        client.release();
+      }
+    } else {
+      console.log(
+        "ℹ️ Пользователь не залогинен или userId отсутствует, пропускаем сохранение в БД"
+      );
+      console.log("isLoggedIn:", isLoggedIn, "userId:", userId);
+    }
+
+    res.json(result);
   } catch (error) {
     console.error("❌ КРИТИЧЕСКАЯ ОШИБКА в /api/horoscope:", error);
     console.error("❌ Stack trace:", error.stack);

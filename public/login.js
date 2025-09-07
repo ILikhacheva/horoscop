@@ -1,5 +1,74 @@
 // login.js - Обработка авторизации (использует функции из client-utils.js)
 document.addEventListener("DOMContentLoaded", function () {
+  // === Логика для модального окна профиля ===
+  if (document.getElementById("profileZodiac"))
+    fillZodiacSelect("profileZodiac");
+  const profileBirthdayInput = document.getElementById("profileBirthday");
+  const profileNoBirthdayCheckbox =
+    document.getElementById("profileNoBirthday");
+  const profileZodiacSelect = document.getElementById("profileZodiac");
+  const profileZodiacGroup = document.getElementById("profileZodiacGroup");
+  const profileBirthdayGroup = document.getElementById("profileBirthdayGroup");
+
+  function updateProfileFieldsByState() {
+    if (
+      !profileBirthdayInput ||
+      !profileNoBirthdayCheckbox ||
+      !profileZodiacSelect ||
+      !profileZodiacGroup
+    )
+      return;
+    if (profileBirthdayInput.value) {
+      profileNoBirthdayCheckbox.checked = false;
+      profileBirthdayInput.disabled = false;
+      profileZodiacSelect.disabled = true;
+      profileZodiacGroup.style.display = "block";
+      // Автоматически вычисляем знак зодиака
+      if (typeof getZodiacSignFromString === "function") {
+        profileZodiacSelect.value = getZodiacSignFromString(
+          profileBirthdayInput.value
+        );
+      }
+    } else if (profileNoBirthdayCheckbox.checked) {
+      profileBirthdayInput.value = "";
+      profileBirthdayInput.disabled = true;
+      profileZodiacSelect.disabled = false;
+      profileZodiacGroup.style.display = "block";
+    } else {
+      profileBirthdayInput.disabled = false;
+      profileZodiacSelect.disabled = true;
+      profileZodiacGroup.style.display = "block";
+    }
+  }
+
+  if (profileBirthdayInput) {
+    profileBirthdayInput.addEventListener("change", updateProfileFieldsByState);
+  }
+  if (profileNoBirthdayCheckbox) {
+    profileNoBirthdayCheckbox.addEventListener("change", function () {
+      if (profileNoBirthdayCheckbox.checked) {
+        profileBirthdayInput.value = "";
+        profileBirthdayInput.disabled = true;
+        profileZodiacSelect.disabled = false;
+        profileZodiacGroup.style.display = "block";
+      } else {
+        profileBirthdayInput.disabled = false;
+        profileZodiacSelect.disabled = true;
+        profileZodiacGroup.style.display = "block";
+        // Если есть дата рождения, вычислить знак зодиака
+        if (
+          profileBirthdayInput.value &&
+          typeof getZodiacSignFromString === "function"
+        ) {
+          profileZodiacSelect.value = getZodiacSignFromString(
+            profileBirthdayInput.value
+          );
+        }
+      }
+    });
+  }
+  // При открытии профиля и заполнении формы тоже вызывать
+  updateProfileFieldsByState();
   // Только проверяем авторизацию для обновления интерфейса,
   // но НЕ заполняем форму при загрузке страницы
   checkUserSessionForInterface();
@@ -30,13 +99,13 @@ document.addEventListener("DOMContentLoaded", function () {
       password: document.getElementById("loginPassword").value,
     };
 
-    logInfo("Данные для входа:", {
+    logInfo("Data for login:", {
       email: formData.email,
       password: "***скрыт***",
     });
 
     try {
-      logInfo("Отправляем запрос авторизации...");
+      logInfo("Sending authorization request...");
       const response = await fetch("/api/login", {
         method: "POST",
         headers: {
@@ -45,19 +114,43 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify(formData),
       });
 
-      logInfo("Получен ответ сервера:", response.status);
+      logInfo("Received server response:", response.status);
       const result = await response.json();
-      logInfo("Результат авторизации:", result);
+      logInfo("Authorization result:", result);
 
       if (result.success) {
-        logSuccess("Авторизация успешна!");
-        logInfo("Данные пользователя с сервера:", result.user);
+        logSuccess("Authorization successful!");
+        logInfo("User data from server:", result.user);
 
         // Сохраняем информацию о пользователе в localStorage
         localStorage.setItem("user", JSON.stringify(result.user));
         localStorage.setItem("isLoggedIn", "true");
 
-        showSuccess("Вход выполнен успешно! Обновляем интерфейс...");
+        // Очищаем предыдущий гороскоп при логине
+        const horoscopeDiv = document.getElementById("horoscope");
+        if (horoscopeDiv) {
+          horoscopeDiv.innerHTML = "";
+        }
+        const resultForm = document.getElementById("result_form");
+        if (resultForm) {
+          resultForm.classList.add("form-hidden");
+        }
+
+        // Сохраняем гороскоп на сегодня, если он есть
+        if (result.todayHoroscope) {
+          localStorage.setItem(
+            "horoscopeResponse",
+            JSON.stringify(result.todayHoroscope)
+          );
+          console.log(
+            "✅ Гороскоп на сегодня загружен из БД:",
+            result.todayHoroscope
+          );
+        } else {
+          console.log("ℹ️ Гороскоп на сегодня не найден в ответе сервера");
+        }
+
+        showSuccess("Login successful! Updating interface...");
 
         // Закрываем модальное окно входа и обновляем интерфейс
         setTimeout(() => {
@@ -68,21 +161,70 @@ document.addEventListener("DOMContentLoaded", function () {
           updateAuthInterface();
           // Заполняем форму данными пользователя
           fillUserForm(result.user);
-          // Загружаем гороскоп пользователя на сегодня (если функция доступна)
-          if (typeof loadUserHoroscopeForToday === "function") {
+
+          // Временно отключаем автоматическое отображение гороскопа при входе
+          // Гороскоп будет отображаться только по явному запросу пользователя
+          if (false && result.todayHoroscope) {
+            console.log(
+              "🎯 Пытаемся отобразить гороскоп:",
+              result.todayHoroscope
+            );
+            const today = new Date().toISOString().split("T")[0];
+
+            // Проверяем, что гороскоп действительно на сегодня
+            const horoscopeDate =
+              result.todayHoroscope.date || result.todayHoroscope.horoscop_date;
+            if (horoscopeDate && horoscopeDate !== today) {
+              console.log(
+                "⚠️ Гороскоп не на сегодняшнюю дату:",
+                horoscopeDate,
+                "vs",
+                today
+              );
+              console.log("ℹ️ Пропускаем отображение устаревшего гороскопа");
+              return;
+            }
+
+            const horoscopeInfo = {
+              name: result.user.name,
+              zodiac: result.user.zodiac,
+              date: today,
+            };
+            console.log("🎯 Информация для отображения:", horoscopeInfo);
+
+            // Проверяем, есть ли функция displayHoroscopeResult
+            if (typeof displayHoroscopeResult === "function") {
+              displayHoroscopeResult(result.todayHoroscope, horoscopeInfo);
+              console.log("✅ Отображен гороскоп на сегодня");
+            } else {
+              console.error("❌ Функция displayHoroscopeResult не найдена");
+            }
+          } else {
+            console.log(
+              "ℹ️ todayHoroscope отсутствует в ответе сервера или автоматическое отображение отключено"
+            );
+          }
+
+          // Временно отключаем автоматическую загрузку гороскопа при входе
+          // Гороскоп будет загружаться только по явному запросу пользователя
+          if (false && typeof loadUserHoroscopeForToday === "function") {
             loadUserHoroscopeForToday(result.user);
+          } else {
+            console.log(
+              "ℹ️ Автоматическая загрузка гороскопа отключена - пользователь должен запросить гороскоп вручную"
+            );
           }
         }, 1000);
       } else {
-        logError("Ошибка авторизации:", result.message);
+        logError("Authorization error:", result.message);
         showError(
           "loginGeneralError",
-          result.message || "Неверный email или пароль"
+          result.message || "Invalid email or password"
         );
       }
     } catch (error) {
-      logError("Ошибка сети при авторизации:", error);
-      showError("loginGeneralError", "Ошибка соединения с сервером");
+      logError("Network error during authorization:", error);
+      showError("loginGeneralError", "Connection error");
     }
   });
 
@@ -91,79 +233,63 @@ document.addEventListener("DOMContentLoaded", function () {
   if (profileForm) {
     profileForm.addEventListener("submit", async function (e) {
       e.preventDefault();
-
-      logInfo("Попытка обновления профиля...");
-
-      // Очищаем предыдущие ошибки
+      logInfo("Attempting to update profile...");
       clearProfileErrors();
-
-      // Валидация
       if (!validateProfileForm()) {
-        logError("Валидация формы профиля не пройдена");
+        logError("Profile form validation failed");
         return;
       }
-
-      const formData = {
-        name: document.getElementById("profileName").value.trim(),
-        birthday: document.getElementById("profileBirthday").value || null,
-      };
-
+      const name = document.getElementById("profileName").value.trim();
+      const birthday = document.getElementById("profileBirthday").value;
+      const noBirthday = document.getElementById("profileNoBirthday").checked;
+      const zodiac = document.getElementById("profileZodiac").value;
       const password = document.getElementById("profilePassword").value;
-      if (password) {
-        formData.password = password;
+      let formData = { name };
+      if (noBirthday) {
+        formData.birthday = null;
+        formData.zodiac = zodiac;
+      } else {
+        formData.birthday = birthday || null;
+        if (birthday && typeof getZodiacSignFromString === "function") {
+          formData.zodiac = getZodiacSignFromString(birthday);
+        } else {
+          formData.zodiac = "";
+        }
       }
-
+      if (password) formData.password = password;
       try {
         const userData = localStorage.getItem("user");
         const user = JSON.parse(userData);
-
         const response = await fetch("/api/update-profile", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: user.email,
-            ...formData,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email, ...formData }),
         });
-
         const result = await response.json();
-
         if (result.success) {
-          logSuccess("Профиль обновлен успешно!");
-
-          // Обновляем данные пользователя в localStorage
+          logSuccess("Profile updated successfully!");
           const updatedUser = { ...user, ...formData };
           localStorage.setItem("user", JSON.stringify(updatedUser));
-
-          // Обновляем интерфейс
           updateAuthInterface();
           fillUserForm(updatedUser);
-
-          // Показываем успешное сообщение
           const successMsg = document.getElementById("profileSuccessMessage");
           if (successMsg) {
-            successMsg.textContent = "Профиль успешно обновлен!";
+            successMsg.textContent = "Profile updated successfully!";
             successMsg.style.display = "block";
           }
-
-          // Закрываем модальное окно через 2 секунды
           setTimeout(() => {
-            if (typeof closeProfileModal === "function") {
-              closeProfileModal();
-            }
+            if (typeof closeProfileModal === "function") closeProfileModal();
           }, 2000);
         } else {
-          logError("Ошибка обновления профиля:", result.message);
+          logError("Profile update error:", result.message);
           showError(
             "profileGeneralError",
-            result.message || "Ошибка обновления профиля"
+            result.message || "Profile update error"
           );
         }
       } catch (error) {
-        logError("Ошибка сети при обновлении профиля:", error);
-        showError("profileGeneralError", "Ошибка соединения с сервером");
+        logError("Network error during profile update:", error);
+        showError("profileGeneralError", "Connection error");
       }
     });
   }
@@ -176,14 +302,14 @@ function validateLoginForm() {
   // Проверка email
   const email = document.getElementById("loginEmail").value.trim();
   if (!email || !isValidEmail(email)) {
-    showError("loginEmail", "Введите корректный email");
+    showError("loginEmail", "Input a valid email");
     isValid = false;
   }
 
   // Проверка пароля
   const password = document.getElementById("loginPassword").value;
   if (!password) {
-    showError("loginPassword", "Введите пароль");
+    showError("loginPassword", "Input your password");
     isValid = false;
   }
 
@@ -197,14 +323,14 @@ function validateProfileForm() {
   // Проверка имени
   const name = document.getElementById("profileName").value.trim();
   if (!name) {
-    showError("profileNameError", "Введите имя");
+    showError("profileNameError", "Input your name");
     isValid = false;
   }
 
   // Проверка дня рождения (опционально)
   const birthday = document.getElementById("profileBirthday").value;
   if (birthday && !isValidBirthday(birthday)) {
-    showError("profileBirthdayError", "Некорректная дата рождения");
+    showError("profileBirthdayError", "Incorrect birthday");
     isValid = false;
   }
 
@@ -216,16 +342,16 @@ function validateProfileForm() {
 
   if (password || passwordConfirm) {
     if (!password) {
-      showError("profilePasswordError", "Введите новый пароль");
+      showError("profilePasswordError", "Input a new password");
       isValid = false;
     } else if (!isValidPassword(password)) {
       showError(
         "profilePasswordError",
-        "Пароль должен содержать минимум 6 символов"
+        "Password must be at least 6 characters long"
       );
       isValid = false;
     } else if (password !== passwordConfirm) {
-      showError("profilePasswordConfirmError", "Пароли не совпадают");
+      showError("profilePasswordConfirmError", "Passwords do not match");
       isValid = false;
     }
   }
@@ -334,56 +460,149 @@ function updateAuthInterface() {
 
 // Заполнение формы данными пользователя
 function fillUserForm(user) {
-  logInfo("Заполняем форму данными пользователя:", user);
-
-  // Очищаем старый кэшированный гороскоп из localStorage
-  localStorage.removeItem("horoscopeResult");
-  const horoscopeDiv = document.getElementById("horoscope");
-  if (horoscopeDiv) {
-    horoscopeDiv.innerHTML = "";
-  }
-
-  // Заполняем имя
+  // --- Основная форма (user_name, user_birthday, user_date) ---
   const userNameInput = document.getElementById("user_name");
-  if (userNameInput) {
-    userNameInput.value = user.name || "";
-    logInfo("Имя заполнено:", user.name);
-  } else {
-    logError("Элемент user_name не найден");
-  }
-
-  // Заполняем дату рождения
+  if (userNameInput) userNameInput.value = user.name || "";
   const userBirthdayInput = document.getElementById("user_birthday");
-  if (userBirthdayInput) {
-    if (user.birthday) {
-      // Дата уже приходит в правильном формате YYYY-MM-DD с сервера
-      userBirthdayInput.value = user.birthday;
-      logInfo("Дата рождения заполнена:", user.birthday);
-    } else {
-      logInfo("Дата рождения не указана в данных пользователя");
-    }
-  } else {
-    logError("Элемент user_birthday не найден");
-  }
-
-  // Устанавливаем сегодняшнюю дату для гороскопа
+  if (userBirthdayInput) userBirthdayInput.value = user.birthday || "";
   const userDateInput = document.getElementById("user_date");
   if (userDateInput) {
     const today = new Date().toISOString().split("T")[0];
     userDateInput.value = today;
     logInfo("Дата гороскопа установлена на сегодня:", today);
-  } else {
-    logError("Элемент user_date не найден");
   }
+  logInfo("Заполняем форму данными пользователя:", user);
+
+  // Очищаем старый кэшированный гороскоп из localStorage
+  localStorage.removeItem("horoscopeResult");
+  localStorage.removeItem("horoscopeResponse");
+  localStorage.removeItem("info");
+
+  // Очищаем все ключи кеша для незалогиненных пользователей
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("horoscope_cache_")) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  const horoscopeDiv = document.getElementById("horoscope");
+  if (horoscopeDiv) {
+    horoscopeDiv.innerHTML = "";
+  }
+
+  // Скрываем блок результата
+  const resultForm = document.getElementById("result_form");
+  if (resultForm) {
+    resultForm.classList.add("form-hidden");
+    resultForm.style.display = "none";
+  }
+
+  // === Заполнение модального окна профиля ===
+  const profileNameInput = document.getElementById("profileName");
+  if (profileNameInput) profileNameInput.value = user.name || "";
+  const profileEmailInput = document.getElementById("profileEmail");
+  if (profileEmailInput) profileEmailInput.value = user.email || "";
+  const profileBirthdayInput = document.getElementById("profileBirthday");
+  const profileNoBirthdayCheckbox =
+    document.getElementById("profileNoBirthday");
+  const profileZodiacSelect = document.getElementById("profileZodiac");
+  if (
+    profileBirthdayInput &&
+    profileNoBirthdayCheckbox &&
+    profileZodiacSelect
+  ) {
+    if (user.birthday) {
+      profileBirthdayInput.value = user.birthday;
+      profileNoBirthdayCheckbox.checked = false;
+      profileBirthdayInput.disabled = false;
+      profileZodiacSelect.disabled = true;
+      if (typeof getZodiacSignFromString === "function") {
+        profileZodiacSelect.value = getZodiacSignFromString(user.birthday);
+      }
+    } else {
+      profileBirthdayInput.value = "";
+      profileNoBirthdayCheckbox.checked = true;
+      profileBirthdayInput.disabled = true;
+      profileZodiacSelect.disabled = false;
+      profileZodiacSelect.value = user.zodiac || "";
+    }
+    const profileZodiacGroup = document.getElementById("profileZodiacGroup");
+    if (profileZodiacGroup) profileZodiacGroup.style.display = "block";
+  }
+
+  // Устанавливаем сегодняшнюю дату для гороскопа (уже выполнено выше)
 }
 
 // Функция выхода из системы
 function logout() {
   logInfo("Выполняем выход из системы...");
 
-  // Очищаем localStorage
+  // Сохраняем текущие данные формы в info перед очисткой
+  const userNameField = document.getElementById("user_name");
+  const userBirthdayField = document.getElementById("user_birthday");
+  const userDateField = document.getElementById("user_date");
+
+  if (userNameField && userBirthdayField && userDateField) {
+    const currentFormData = {
+      name: userNameField.value.trim(),
+      birthday: userBirthdayField.value.trim(),
+      date: userDateField.value.trim(),
+    };
+
+    // Сохраняем только если есть хотя бы какие-то данные
+    if (
+      currentFormData.name ||
+      currentFormData.birthday ||
+      currentFormData.date
+    ) {
+      // Добавляем знак зодиака если есть дата рождения
+      if (currentFormData.birthday) {
+        // Импортируем функцию getZodiacSignFromString из app.js
+        if (typeof getZodiacSignFromString === "function") {
+          currentFormData.zodiac = getZodiacSignFromString(
+            currentFormData.birthday
+          );
+        }
+      }
+
+      localStorage.setItem("info", JSON.stringify(currentFormData));
+      console.log(
+        "✅ Сохранены текущие данные формы в info при logout:",
+        currentFormData
+      );
+    }
+  }
+
+  // Очищаем данные пользователя
   localStorage.removeItem("user");
   localStorage.removeItem("isLoggedIn");
+  localStorage.removeItem("horoscopeResponse");
+  localStorage.removeItem("horoscopeResult");
+
+  // НЕ удаляем info - там остаются данные формы для восстановления
+  // localStorage.removeItem("info");
+
+  // Очищаем все ключи кеша для незалогиненных пользователей
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("horoscope_cache_")) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  // ОЧИЩАЕМ ГОРОСКОП - ЭТО БЫЛО ПРОБЛЕМОЙ!
+  const horoscopeDiv = document.getElementById("horoscope");
+  if (horoscopeDiv) {
+    horoscopeDiv.innerHTML = "";
+    console.log("✅ Очищен контент гороскопа при logout");
+  }
+
+  // СКРЫВАЕМ БЛОК РЕЗУЛЬТАТА - ЭТО ТОЖЕ БЫЛО ПРОБЛЕМОЙ!
+  const resultForm = document.getElementById("result_form");
+  if (resultForm) {
+    resultForm.classList.add("form-hidden");
+    resultForm.style.display = "none";
+    console.log("✅ Скрыт блок результата при logout");
+  }
 
   // Показываем кнопки для гостей
   const guestButtons = document.getElementById("guestButtons");
@@ -463,7 +682,6 @@ function fillProfileForm(user) {
   // Заполняем дату рождения
   const profileBirthday = document.getElementById("profileBirthday");
   if (profileBirthday && user.birthday) {
-    // Дата уже приходит в правильном формате YYYY-MM-DD с сервера
     profileBirthday.value = user.birthday;
   }
 

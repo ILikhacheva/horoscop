@@ -10,11 +10,7 @@
 
 </head>
 <body>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                if (document.getElementById('zodiac')) fillZodiacSelect('zodiac');
-            });
-        </script>
+        
     <div class="zodiac-container" id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(255,255,255,0.7); z-index:9999; justify-content:center; align-items:center;">
     <img src="img/zodiac/animation.png" alt="Loading..." style="width:80px; height:80px;" class="zodiac-wheel">
     </div>
@@ -127,6 +123,11 @@
                     <label for="registerPassword">Password:</label>
                     <input type="password" id="registerPassword" name="password" required>
                 </div>
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Repeat password:</label>
+                    <input type="password" id="registerConfirmPassword" name="registerConfirmPassword" required>
+                    <div class="error-message" id="confirmPasswordError"></div>
+                </div>
                 <div class="success-message" id="registerSuccessMessage"></div>
                 <div class="error-message" id="registerGeneralError"></div>
                 <div class="buttons">
@@ -161,6 +162,17 @@
                     <input type="date" id="profileBirthday" name="birthday">
                     <div class="error-message" id="profileBirthdayError"></div>
                 </div>
+                <div class="form-group" style="margin-bottom:0;" id="profileBirthdayGroup">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="checkbox" id="profileNoBirthday" name="noBirthday" style="vertical-align:middle;">
+                            <label for="profileNoBirthday" style="margin:0;">I don't want to share my birthday</label>
+                        </div>
+                </div>
+                <div class="form-group" id="profileZodiacGroup" style="display:none;">
+                    <label for="profileZodiac">Zodiac:</label>
+                    <select id="profileZodiac" name="zodiac"></select>
+                    <div class="error-message" id="profileZodiacError"></div>
+                </div>
                 <div class="form-group">
                     <label for="profilePassword">New Password (leave blank if you don't want to change):</label>
                     <input type="password" id="profilePassword" name="password">
@@ -185,54 +197,6 @@
     <script src="modal-register.js"></script>
     <script src="login.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        fillZodiacSelect('zodiac');
-        const birthdayInput = document.getElementById('birthday');
-        const zodiacSelect = document.getElementById('zodiac');
-        const noBirthdayCheckbox = document.getElementById('noBirthday');
-        const zodiacGroup = document.getElementById('zodiacGroup');
-        const birthdayGroup = document.getElementById('birthdayGroup');
-
-        // Используем функцию getZodiacSignFromString из client-utils.js
-
-        birthdayInput.addEventListener('change', function() {
-            if (birthdayInput.value) {
-                const zodiac = getZodiacSignFromString(birthdayInput.value);
-                zodiacSelect.value = zodiac;
-                zodiacSelect.disabled = true;
-                zodiacGroup.style.display = 'block';
-            } else {
-                zodiacSelect.value = '';
-                zodiacSelect.disabled = false;
-                if (!noBirthdayCheckbox.checked) zodiacGroup.style.display = 'none';
-            }
-        });
-
-        noBirthdayCheckbox.addEventListener('change', function() {
-            if (noBirthdayCheckbox.checked) {
-                birthdayInput.value = '';
-                birthdayGroup.style.display = 'none';
-                zodiacSelect.value = '';
-                zodiacSelect.disabled = false;
-                zodiacGroup.style.display = 'block';
-            } else {
-                birthdayGroup.style.display = 'block';
-                zodiacSelect.value = '';
-                zodiacSelect.disabled = false;
-                zodiacGroup.style.display = 'none';
-            }
-        });
-
-        // При инициализации
-        if (birthdayInput.value) {
-            const zodiac = getZodiacSignFromString(birthdayInput.value);
-            zodiacSelect.value = zodiac;
-            zodiacSelect.disabled = true;
-            zodiacGroup.style.display = 'block';
-        }
-    });
-    </script>
-    <script>
     function showLoginForm() {
         document.getElementById('loginModal').style.display = 'flex';
     }
@@ -248,6 +212,8 @@
             var today = new Date().toISOString().split('T')[0];
             birthdayInput.setAttribute('max', today);
         }
+        // Заполнить select знаков зодиака при каждом открытии
+        if (typeof fillZodiacSelect === 'function') fillZodiacSelect('zodiac');
     }
     function closeRegisterModal() {
         document.getElementById('registerModal').style.display = 'none';

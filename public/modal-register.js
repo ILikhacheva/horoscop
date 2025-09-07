@@ -70,13 +70,13 @@ document.addEventListener("DOMContentLoaded", function () {
       email: document.getElementById("registerEmail").value.trim(),
       name: document.getElementById("registerName").value.trim(),
       birthday: document.getElementById("birthday").value || null,
-      zodiac:
-        document.getElementById("zodiac").value ||
-        document.getElementById("birthday").value
-          ? getZodiacSign(new Date(document.getElementById("birthday").value))
-          : "",
+      zodiac: document.getElementById("birthday").value
+        ? getZodiacSign(new Date(document.getElementById("birthday").value))
+        : document.getElementById("zodiac").value,
       password: document.getElementById("registerPassword").value,
     };
+
+    //    console.log("Zodiac", document.getElementById("zodiac").value);
 
     logInfo("Данные формы для регистрации:", {
       ...formData,
@@ -99,9 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (result.success) {
         logSuccess("Регистрация успешна!");
-        showModalSuccess(
-          "Регистрация прошла успешно! Теперь вы можете войти в систему."
-        );
+        showModalSuccess("Success! Now you can log in.");
 
         // Сохраняем данные пользователя и закрываем модальное окно
         setTimeout(() => {
@@ -130,24 +128,32 @@ function validateModalForm() {
   // Проверка email
   const email = document.getElementById("registerEmail").value.trim();
   if (!email || !isValidEmail(email)) {
-    showModalError("registerEmail", "Введите корректный email");
+    showModalError("registerEmail", "Input valid email");
     isValid = false;
   }
 
   // Проверка имени
   const name = document.getElementById("registerName").value.trim();
   if (!name || name.length < 2) {
-    showModalError("registerName", "Имя должно содержать минимум 2 символа");
+    showModalError("registerName", "Name must be at least 2 characters long");
     isValid = false;
   }
 
   // Проверка пароля
   const password = document.getElementById("registerPassword").value;
+  const confirmPassword = document.getElementById(
+    "registerConfirmPassword"
+  )?.value;
   if (!password || password.length < 6) {
     showModalError(
       "registerPassword",
-      "Пароль должен содержать минимум 6 символов"
+      "Password must be at least 6 characters long"
     );
+    isValid = false;
+  }
+  // Проверка совпадения паролей
+  if (confirmPassword !== undefined && password !== confirmPassword) {
+    showModalError("confirmPasswordError", "Passwords do not match");
     isValid = false;
   }
 
@@ -157,14 +163,14 @@ function validateModalForm() {
   const zodiac = document.getElementById("zodiac").value;
 
   if (noBirthday && !zodiac) {
-    showModalError("zodiac", "Выберите знак зодиака");
+    showModalError("zodiac", "Choose your zodiac sign");
     isValid = false;
   }
 
   if (!noBirthday && !birthday) {
     showModalError(
       "birthday",
-      "Укажите дату рождения или выберите 'Не хочу указывать'"
+      "Input your birth date or select 'I don't want to specify'"
     );
     isValid = false;
   }
@@ -173,7 +179,7 @@ function validateModalForm() {
   if (birthday) {
     const today = new Date().toISOString().split("T")[0];
     if (birthday > today) {
-      showModalError("birthday", "Дата рождения не может быть в будущем");
+      showModalError("birthday", "Birth date cannot be in the future");
       isValid = false;
     }
   }
