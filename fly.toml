@@ -1,5 +1,5 @@
-app = "horoscop"        # замени на имя своего приложения
-primary_region = "arn"     # Стокгольм — ближе всего к Финляндии
+app = "horoscop"        
+primary_region = "arn"    
 
 [build]
   dockerfile = "Dockerfile"
