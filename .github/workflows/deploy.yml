@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch:  # для ручного запуска из интерфейса
 
 jobs:
   deploy:
@@ -24,11 +24,13 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      - name: Run database migrations
-        if: success() 
+      - name: Run database migrations via Fly proxy
+        if: success()  
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
-          psql "$DATABASE_URL" -f init_database.sql
+         
+          fly proxy 5432:5432 -a little-snowflake-3053 &
+          sleep 5
+          psql "postgres://horoscop:N5NCdtk5HZmM6fU@localhost:5432/<databasename>" -f init_database.sql
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
