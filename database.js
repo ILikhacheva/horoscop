@@ -7,8 +7,7 @@ const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,*/
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  options: "-c search_path=public"
+  ssl: { rejectUnauthorized: false }
 });
 
 (async () => {
