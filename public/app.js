@@ -1,6 +1,6 @@
-// --- Обработка новых форм для гостя и пользователя (userForm, guestForm) ---
+// --- Processing (userForm, guestForm) ---
 document.addEventListener("DOMContentLoaded", function () {
-  // Гостевая форма (с именем, датой рождения и датой)
+  // Guest form (with name, birthday, and date)
   const guestForm = document.getElementById("guestForm");
   if (guestForm) {
     guestForm.addEventListener("submit", function (e) {
@@ -8,12 +8,12 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("submit_btn").click();
     });
   }
-  // Форма для залогиненного (только дата)
+  // Form for logged-in user (only date)
   const userForm = document.getElementById("userForm");
   if (userForm) {
     userForm.addEventListener("submit", async function (e) {
       e.preventDefault();
-      // Собираем только дату и отправляем как для залогиненного
+      // Collect only the date and send it as for logged-in
       showLoading();
       document.getElementById("horoscope").innerHTML = "";
       const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -49,21 +49,21 @@ document.addEventListener("DOMContentLoaded", function () {
       } catch (err) {
         console.error("Error:", err);
         document.getElementById("horoscope").innerHTML =
-          "Ошибка получения гороскопа.";
+          "Error fetching horoscope.";
         hideLoading();
       }
     });
   }
 });
-// Проверяем авторизацию при загрузке страницы
+// check authorization status on page load
 document.addEventListener("DOMContentLoaded", function () {
-  // Очищаем URL от потенциально конфиденциальных данных
+  // Clean URL from potentially sensitive data
   cleanURLFromSensitiveData();
 
   checkAuthStatus();
 });
 
-// Функция очистки URL от конфиденциальных данных
+// function to clean URL from sensitive data
 function cleanURLFromSensitiveData() {
   const urlParams = new URLSearchParams(window.location.search);
   const sensitiveParams = ["email", "password", "pass", "login"];
@@ -82,11 +82,11 @@ function cleanURLFromSensitiveData() {
       (urlParams.toString() ? "?" + urlParams.toString() : "") +
       window.location.hash;
     window.history.replaceState({}, "", newURL);
-    logInfo("Конфиденциальные данные удалены из URL");
+    logInfo("Confidential data removed from URL");
   }
 }
 
-// Функции для работы с авторизацией
+// Functions for working with authorization
 function checkAuthStatus() {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const userStr = localStorage.getItem("user");
@@ -106,27 +106,27 @@ function showUserButtons(user) {
 }
 
 function showGuestButtons() {
-  console.log("🔄 showGuestButtons() вызвана");
+  console.log("🔄 showGuestButtons() called");
   document.getElementById("guestButtons").style.display = "flex";
   document.getElementById("userButtons").style.display = "none";
 
-  // При переходе к гостевому режиму скрываем блок результата гороскопа
+  // Hide horoscope result block when switching to guest mode
   const resultForm = document.getElementById("result_form");
   if (resultForm && !resultForm.classList.contains("form-hidden")) {
     resultForm.classList.add("form-hidden");
     resultForm.style.display = "none";
-    console.log("✅ Скрыт блок результата при переходе к гостевому режиму");
+    console.log("✅ block with result is hidden when switching to guest mode");
   } else if (resultForm) {
-    console.log("ℹ️ Блок результата уже скрыт или не найден");
+    console.log("ℹ️ Block with result is already hidden or not found");
   } else {
-    console.log("❌ Элемент result_form не найден");
+    console.log("❌ Element result_form not found");
   }
 
-  // Дополнительно очищаем содержимое гороскопа
+  // Clean horoscope content
   const horoscopeDiv = document.getElementById("horoscope");
   if (horoscopeDiv && horoscopeDiv.innerHTML.trim() !== "") {
     horoscopeDiv.innerHTML = "";
-    console.log("✅ Очищено содержимое гороскопа в showGuestButtons");
+    console.log("✅ Cleaned horoscope content in showGuestButtons");
   }
 }
 
@@ -143,72 +143,72 @@ function openProfile() {
 }
 
 function logout() {
-  console.log("⚠️ ВНИМАНИЕ: Эта функция logout в app.js НЕ используется!");
-  console.log("⚠️ Реальная функция logout находится в login.js");
+  console.log("⚠️ WARNING: This logout function in app.js is NOT used!");
+  console.log("⚠️ The real logout function is in login.js");
 
   const logoutId = Math.random().toString(36).substr(2, 9);
-  console.log(`🔄 [${logoutId}] Начинаем процесс logout`);
-  if (confirm("Вы уверены, что хотите выйти?")) {
-    console.log(`✅ [${logoutId}] Пользователь подтвердил выход`);
+  console.log(`🔄 [${logoutId}] Starting logout process`);
+  if (confirm("Are you sure you want to log out?")) {
+    console.log(`✅ [${logoutId}] User confirmed logout`);
 
-    // Очищаем все данные пользователя из localStorage
+    // Clear all user data from localStorage
     localStorage.removeItem("user");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("horoscopeResponse");
-    localStorage.removeItem("horoscopeResult"); // старый ключ
-    localStorage.removeItem("info"); // информация о форме
-    console.log(`✅ [${logoutId}] Очищен localStorage`);
+    localStorage.removeItem("horoscopeResult"); // old key
+    localStorage.removeItem("info"); // info about the form
+    console.log(`✅ [${logoutId}] Cleared localStorage`);
 
-    // Очищаем все ключи кеша для незалогиненных пользователей
+    // Clear all cache keys for non-logged-in users
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith("horoscope_cache_")) {
         localStorage.removeItem(key);
-        console.log(`✅ [${logoutId}] Удален кеш:`, key);
+        console.log(`✅ [${logoutId}] Cache cleared:`, key);
       }
     });
 
-    // Очищаем отображение гороскопа
+    // Clear horoscope display
     const horoscopeDiv = document.getElementById("horoscope");
     if (horoscopeDiv) {
       console.log(
-        `🔍 [${logoutId}] Содержимое horoscope до очистки:`,
+        `🔍 [${logoutId}] Content of horoscope before clearing:`,
         horoscopeDiv.innerHTML.substring(0, 100)
       );
       horoscopeDiv.innerHTML = "";
       horoscopeDiv.textContent = "";
       horoscopeDiv.innerText = "";
 
-      // Принудительно удаляем все дочерние элементы
+      // Delete all child elements
       while (horoscopeDiv.firstChild) {
         horoscopeDiv.removeChild(horoscopeDiv.firstChild);
       }
 
-      console.log(`✅ [${logoutId}] Очищен контент гороскопа полностью`);
+      console.log(`✅ [${logoutId}] Cleaned horoscope content completely`);
       console.log(
-        `🔍 [${logoutId}] Содержимое horoscope после очистки:`,
+        `🔍 [${logoutId}] Content of horoscope after clearing:`,
         horoscopeDiv.innerHTML
       );
     }
 
-    // Скрываем блок с результатом
+    // Hide result block
     const resultForm = document.getElementById("result_form");
     if (resultForm) {
       console.log(
-        `🔍 [${logoutId}] Классы resultForm до изменений:`,
+        `🔍 [${logoutId}] Classes of resultForm before changes:`,
         resultForm.className
       );
       console.log(
-        `🔍 [${logoutId}] Стиль display до изменений:`,
+        `🔍 [${logoutId}] Display style before changes:`,
         resultForm.style.display
       );
       console.log(
-        `🔍 [${logoutId}] Видимость resultForm до изменений:`,
+        `🔍 [${logoutId}] Visibility of resultForm before changes:`,
         resultForm.offsetHeight,
         "x",
         resultForm.offsetWidth
       );
 
-      // Применяем множественные способы скрытия
+      // Apply multiple ways to hide
       resultForm.classList.add("form-hidden");
       resultForm.style.display = "none";
       resultForm.style.visibility = "hidden";
@@ -218,91 +218,89 @@ function logout() {
       resultForm.setAttribute("hidden", "true");
 
       console.log(
-        `✅ [${logoutId}] Скрыт блок результата всеми возможными способами`
+        `✅ [${logoutId}] Block of result hidden by all possible means`
       );
     }
 
-    // Дополнительно принудительно скрываем блок результата с помощью стиля
+    // Additionally forcibly hide the result block using style
     if (resultForm) {
+      console.log(`✅ [${logoutId}] Additional check for hiding result block`);
       console.log(
-        `✅ [${logoutId}] Дополнительная проверка скрытия блока результата`
-      );
-      console.log(
-        `🔍 [${logoutId}] Классы resultForm после изменений:`,
+        `🔍 [${logoutId}] Classes of resultForm after changes:`,
         resultForm.className
       );
       console.log(
-        `🔍 [${logoutId}] Стиль display после изменений:`,
+        `🔍 [${logoutId}] Display style after changes:`,
         resultForm.style.display
       );
       console.log(
-        `🔍 [${logoutId}] Видимость resultForm после изменений:`,
+        `🔍 [${logoutId}] Visibility of resultForm after changes:`,
         resultForm.offsetHeight,
         "x",
         resultForm.offsetWidth
       );
     }
 
-    // Очищаем ВСЕ поля формы
+    // Clear ALL form fields
     const U_name = document.getElementById("user_name");
     const U_birthday = document.getElementById("user_birthday");
     const U_date = document.getElementById("user_date");
 
     if (U_name) {
       U_name.value = "";
-      console.log("✅ Очищено поле имени");
+      console.log("✅ Cleared name field");
     }
     if (U_birthday) {
       U_birthday.value = "";
-      console.log("✅ Очищено поле дня рождения");
+      console.log("✅ Cleared birthday field");
     }
     if (U_date) {
       U_date.value = "";
-      console.log("✅ Очищено поле даты");
+      console.log("✅ Cleared date field");
     }
 
-    // Очищаем изображение знака зодиака
+    // Clear zodiac sign image
     const zodiacImg = document.getElementById("zodiac_img");
     if (zodiacImg) {
       zodiacImg.src = "";
-      console.log("✅ Очищено изображение знака зодиака");
+      console.log("✅ Cleared zodiac sign image");
     }
 
-    // Сбрасываем форму полностью
+    // Reset the form completely
     const form = document.getElementById("user_form");
     if (form) {
       form.reset();
-      console.log("✅ Форма сброшена");
+      console.log("✅ Form reset");
     }
 
-    // Обновляем статус авторизации
-    console.log("🔄 Вызываем checkAuthStatus()");
+    // Update authorization status
+    console.log("🔄 Calling checkAuthStatus()");
     checkAuthStatus();
 
-    console.log("✅ Logout завершен, все данные и отображение очищены");
+    console.log("✅ Logout completed, all data and display cleared");
 
-    // Дополнительная проверка после logout
+    // Additional check after logout
     setTimeout(() => {
       const horoscopeCheck = document.getElementById("horoscope");
       const resultFormCheck = document.getElementById("result_form");
-      console.log("🔍 Проверка после logout:");
+      console.log("🔍 Checking after logout:");
       console.log(
-        "  - horoscope содержимое:",
-        horoscopeCheck ? horoscopeCheck.innerHTML.substring(0, 50) : "не найден"
+        "  - horoscope content:",
+        horoscopeCheck ? horoscopeCheck.innerHTML.substring(0, 50) : "not found"
       );
       console.log(
-        "  - result_form классы:",
-        resultFormCheck ? resultFormCheck.className : "не найден"
+        "  - result_form classes:",
+        resultFormCheck ? resultFormCheck.className : "not found"
       );
       console.log(
         "  - result_form display:",
-        resultFormCheck ? resultFormCheck.style.display : "не найден"
+        resultFormCheck ? resultFormCheck.style.display : "not found"
       );
     }, 100);
 
-    alert("Вы вышли из системы");
+    alert("You have logged out");
   } else {
-    console.log("❌ Пользователь отменил выход");
+    console.log("❌ User canceled logout");
   }
 }
 
@@ -314,12 +312,12 @@ function hideLoading() {
   document.getElementById("loadingOverlay").style.display = "none";
 }
 
-// Функция проверки авторизации
+// Function to check authorization
 function isUserLoggedIn() {
   return localStorage.getItem("isLoggedIn") === "true";
 }
 
-// Функция для улучшенного кэширования с временными метками
+// Function for improved caching with timestamps
 function getCacheKey(name, date, zodiac) {
   return `horoscope_${name}_${date}_${zodiac}`;
 }
@@ -331,55 +329,55 @@ function isValidCache(cacheData) {
   const now = new Date();
   const hoursDiff = (now - cacheTime) / (1000 * 60 * 60);
 
-  return hoursDiff < 24; // Кэш действителен 24 часа
+  return hoursDiff < 24; // Cache is valid for 24 hours
 }
 
-// Функция для поиска существующих кэшированных гороскопов по параметрам
+// Function to find existing cached horoscopes by parameters
 function findExistingHoroscopeCache(name, birthday, date) {
-  console.log("🔍 Ищем существующий кэш для:", { name, birthday, date });
+  console.log("🔍 Looking for existing cache for:", { name, birthday, date });
 
-  // Если есть дата рождения, вычисляем знак зодиака
+  // If there is a birthday, calculate the zodiac sign
   let zodiac = null;
   if (birthday && typeof getZodiacSignFromString === "function") {
     zodiac = getZodiacSignFromString(birthday);
   }
 
-  // Перебираем все ключи localStorage
+  // Iterate over all keys in localStorage
   for (let key of Object.keys(localStorage)) {
     if (key.startsWith("horoscope_") && key.includes("_" + date + "_")) {
       try {
         const cacheData = JSON.parse(localStorage.getItem(key));
         if (cacheData && isValidCache(cacheData)) {
-          // Извлекаем параметры из ключа
+          // Extract parameters from the key
           const parts = key.split("_");
           if (parts.length >= 4) {
             const cachedName = parts[1];
             const cachedDate = parts[2];
             const cachedZodiac = parts[3];
 
-            // Проверяем совпадение параметров
+            // Check parameter matches
             const nameMatch =
               name && cachedName.toLowerCase() === name.toLowerCase();
             const dateMatch = cachedDate === date;
             const zodiacMatch = zodiac && cachedZodiac === zodiac;
 
             if (nameMatch && dateMatch && zodiacMatch) {
-              console.log("✅ Найден подходящий кэш:", key);
+              console.log("✅ Found matching cache:", key);
               return cacheData;
             }
           }
         }
       } catch (e) {
-        console.log("⚠️ Ошибка при чтении кэша:", key, e);
+        console.log("⚠️ Error reading cache:", key, e);
       }
     }
   }
 
-  console.log("❌ Подходящий кэш не найден");
+  console.log("❌ No matching cache found");
   return null;
 }
 
-// Секции гороскопа
+// Sections of the horoscope
 const infoSections = [
   "General",
   "Work",
@@ -390,13 +388,11 @@ const infoSections = [
   "Advice",
 ];
 
-// ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ РЕЗУЛЬТАТА
+// Function to display the result
 function displayHoroscopeResult(result, info) {
   let html = `<div class="horoscopeResult"> <h2>Horoscope for ${info.name} (${info.zodiac})</h2>`;
   infoSections.forEach((section) => {
-    console.log(
-      `Значение для ${section}: ${result.horoscope?.[section] || "-"}`
-    );
+    console.log(`Value for ${section}: ${result.horoscope?.[section] || "-"}`);
     html += `<p><b>${section}:</b> ${result.horoscope?.[section] || "-"}</p>`;
   });
   html += `</div>`;
@@ -404,7 +400,7 @@ function displayHoroscopeResult(result, info) {
   document.getElementById("horoscope").innerHTML = html;
   const resultFormElement = document.getElementById("result_form");
 
-  // Сбрасываем все принудительные стили скрытия
+  // Drop all forced hiding styles
   resultFormElement.classList.remove("form-hidden");
   resultFormElement.style.display = "";
   resultFormElement.style.visibility = "";
@@ -413,11 +409,11 @@ function displayHoroscopeResult(result, info) {
   resultFormElement.style.overflow = "";
   resultFormElement.removeAttribute("hidden");
 
-  console.log("✅ Отображен результат гороскопа, сброшены все стили скрытия");
+  console.log("✅ Horoscope result displayed, all hiding styles reset");
 
   const resultBox = document.querySelector("#horoscope .horoscopeResult");
 
-  // Добавляем фоновое изображение
+  // Add background image
   if (resultBox) {
     resultBox.style.backgroundImage = `url('img/zodiac/${info.zodiac}.png')`;
     resultBox.style.backgroundSize = "cover";
@@ -425,7 +421,7 @@ function displayHoroscopeResult(result, info) {
     resultBox.style.backgroundPosition = "center";
     resultBox.style.opacity = "0.9";
 
-    // Добавляем overlay для лучшей читаемости
+    // Add overlay for better readability
     let overlay = document.createElement("div");
     overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
     resultBox.parentElement.appendChild(overlay);
@@ -434,71 +430,69 @@ function displayHoroscopeResult(result, info) {
 
 // restore localStorage
 window.addEventListener("load", () => {
-  console.log("🔄 Событие load сработало");
-  console.log("🔍 Проверяем localStorage при загрузке:");
+  console.log("🔄 Load event triggered");
+  console.log("🔍 Checking localStorage on load:");
   console.log("  - info:", localStorage.getItem("info"));
   console.log("  - isLoggedIn:", localStorage.getItem("isLoggedIn"));
   console.log("  - user:", localStorage.getItem("user"));
 
-  // Включаем обратно автоматическое восстановление данных формы
-  // НО без автоматического отображения гороскопа
+  // Enable automatic form data restoration
+
   restoreFormFromLocalStorage();
 
-  // Затем проверяем, есть ли залогиненный пользователь
+  // Check if there is a logged-in user
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const userData = localStorage.getItem("user");
 
   if (isLoggedIn === "true" && userData) {
     try {
       const user = JSON.parse(userData);
-      // Если пользователь залогинен, заполняем форму его данными
+      // If the user is logged in, fill the form with their data
       fillFormWithUserData(user);
-      console.log("✅ Форма заполнена данными залогиненного пользователя");
+      console.log("✅ Form filled with logged-in user data");
 
-      // НЕ загружаем автоматически гороскоп при загрузке страницы
-      // Гороскоп будет загружаться только по явному запросу пользователя
-      console.log(
-        "ℹ️ Автоматическая загрузка гороскопа при загрузке страницы отключена"
-      );
+      // Do NOT automatically load horoscope on page load
+      // Horoscope will only be loaded on explicit user request
+      console.log("ℹ️ Automatic horoscope loading on page load is disabled");
     } catch (error) {
-      console.error("Ошибка при загрузке данных пользователя:", error);
+      console.error("Error loading user data:", error);
     }
   }
 
-  // Настройки календаря
+  // Calendar settings
   setupCalendarLimits();
 });
 
-// Функция восстановления данных из localStorage
+// Function to restore data from localStorage
 function restoreFormFromLocalStorage() {
-  console.log("🔄 Запуск restoreFormFromLocalStorage()");
+  console.log("🔄 Starting restoreFormFromLocalStorage()");
 
-  // Проверяем оба ключа - user (основной) и info (для совместимости)
+  // Check both keys - user (primary) and info (for compatibility)
   const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const savedInfo = JSON.parse(localStorage.getItem("info") || "{}");
-  console.log("🔍 Сохраненная информация из localStorage (user):", savedUser);
-  console.log("🔍 Сохраненная информация из localStorage (info):", savedInfo);
+  console.log("🔍 Saved information from localStorage (user):", savedUser);
+  console.log("🔍 Saved information from localStorage (info):", savedInfo);
 
-  // Используем данные из user, если они есть, иначе из info
+  // Use data from user if available, otherwise from info
   const dataToUse = Object.keys(savedUser).length > 0 ? savedUser : savedInfo;
-  console.log("🔍 Используемые данные:", dataToUse);
+  console.log("🔍 Using data:", dataToUse);
 
   const U_name = document.getElementById("user_name");
   const U_birthday = document.getElementById("user_birthday");
   const U_date = document.getElementById("user_date");
 
-  console.log("🔍 Найденные элементы DOM:", {
+  console.log("🔍 Found DOM elements:", {
     U_name: !!U_name,
     U_birthday: !!U_birthday,
     U_date: !!U_date,
   });
 
-  // Всегда восстанавливаем данные формы
+  // Always restore form data
   if (dataToUse.name && U_name) {
     U_name.value = dataToUse.name;
-    console.log("✅ Восстановлено имя из localStorage:", dataToUse.name);
+    console.log("✅ Restored name from localStorage:", dataToUse.name);
   } else {
-    console.log("ℹ️ Имя не восстановлено:", {
+    console.log("ℹ️ Name not restored:", {
       hasName: !!dataToUse.name,
       hasElement: !!U_name,
     });
@@ -506,44 +500,32 @@ function restoreFormFromLocalStorage() {
 
   if (dataToUse.birthday && U_birthday) {
     U_birthday.value = dataToUse.birthday;
-    console.log(
-      "✅ Восстановлена дата рождения из localStorage:",
-      dataToUse.birthday
-    );
+    console.log("✅ Restored birthday from localStorage:", dataToUse.birthday);
   } else {
-    console.log("ℹ️ Дата рождения не восстановлена:", {
+    console.log("ℹ️ Birthday not restored:", {
       hasBirthday: !!dataToUse.birthday,
       hasElement: !!U_birthday,
     });
   }
 
-  if (dataToUse.date && U_date) {
-    U_date.value = dataToUse.date;
-    console.log(
-      "✅ Восстановлена дата гороскопа из localStorage:",
-      dataToUse.date
-    );
-  } else {
-    console.log("ℹ️ Дата гороскопа не восстановлена:", {
-      hasDate: !!dataToUse.date,
-      hasElement: !!U_date,
-    });
+  if (U_date) {
+    const today = new Date().toISOString().split("T")[0];
+    U_date.value = today;
+    console.log("✅ Set today's date as default:", today);
   }
 
-  // НЕ восстанавливаем автоматически гороскоп при загрузке страницы
-  // Гороскоп будет отображаться только по явному запросу пользователя
+  // DO NOT automatically restore horoscope on page load
+  // Horoscope will only be displayed on explicit user request
   console.log(
-    "ℹ️ Данные формы восстановлены, но гороскоп не отображается автоматически"
+    "ℹ️ Form data restored, but horoscope is not displayed automatically"
   );
 
-  // Проверяем статус авторизации
+  // Check authentication status
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
   if (!isLoggedIn) {
-    console.log(
-      "ℹ️ Пользователь не залогинен, кеш гороскопа НЕ восстанавливается"
-    );
+    console.log("ℹ️ User is not logged in, horoscope cache is NOT restored");
 
-    // Но можем проверить, есть ли подходящий кэш для восстановленных данных
+    // But we can check if there is a suitable cache for the restored data
     if (dataToUse.name && dataToUse.birthday && dataToUse.date) {
       const existingCache = findExistingHoroscopeCache(
         dataToUse.name,
@@ -552,32 +534,30 @@ function restoreFormFromLocalStorage() {
       );
       if (existingCache) {
         console.log(
-          "💡 Найден кэшированный гороскоп для восстановленных данных, но не отображаем автоматически"
+          "💡 Found cached horoscope for restored data, but not displaying automatically"
         );
       }
     }
   } else {
-    console.log(
-      "ℹ️ Пользователь залогинен, кеш гороскопа НЕ восстанавливается"
-    );
+    console.log("ℹ️ User is logged in, horoscope cache is NOT restored");
   }
 }
 
-// Функция заполнения формы данными пользователя
+// Function to fill the form with user data
 function fillFormWithUserData(user) {
   const U_name = document.getElementById("user_name");
   const U_birthday = document.getElementById("user_birthday");
 
   if (U_name) U_name.value = user.name || "";
   if (U_birthday && user.birthday) {
-    // Форматируем дату в формат YYYY-MM-DD для input[type="date"]
+    // Format date to YYYY-MM-DD for input[type="date"]
     const birthDate = new Date(user.birthday);
     const formattedDate = birthDate.toISOString().split("T")[0];
     U_birthday.value = formattedDate;
   }
 }
 
-// Функция загрузки гороскопа пользователя на сегодня
+// Function to load user's horoscope for today
 async function loadUserHoroscopeForToday(user) {
   if (!user.birthday) return;
 
@@ -585,7 +565,7 @@ async function loadUserHoroscopeForToday(user) {
   const zodiac = getZodiacSignFromString(user.birthday);
 
   if (zodiac) {
-    // Заполняем форму данными пользователя и сегодняшней датой
+    // Fill the form with user data and today's date
     document.getElementById("name").value = user.name || "";
     document.getElementById("zodiac").value = zodiac;
     document.getElementById("date").value = today;
@@ -597,7 +577,7 @@ async function loadUserHoroscopeForToday(user) {
   }
 }
 
-// Функция настройки ограничений календаря
+// Function to setup calendar limits
 function setupCalendarLimits() {
   const U_date = document.getElementById("user_date");
   const U_birthday = document.getElementById("user_birthday");
@@ -606,7 +586,7 @@ function setupCalendarLimits() {
     const today = new Date().toISOString().split("T")[0];
     U_date.setAttribute("min", today);
 
-    // Устанавливаем сегодняшний день по умолчанию, если поле пустое
+    // Set today's date as default if field is empty
     if (!U_date.value) {
       U_date.value = today;
     }
@@ -617,8 +597,6 @@ function setupCalendarLimits() {
     U_birthday.setAttribute("max", today);
   }
 }
-
-// Используем функцию getZodiacSign из client-utils.js (функция удалена отсюда для избежания дублирования)
 
 // Form zodiac image
 function showZodiacImage(zodiac) {
@@ -665,7 +643,7 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
   };
 
   if (isLoggedIn) {
-    // Если у пользователя нет даты рождения, но есть зодиак в профиле — используем его
+    // If user has no birthday but has zodiac in profile — use it
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     if ((!info.birthday || !zodiac) && user.zodiac) {
       zodiac = user.zodiac;
@@ -674,12 +652,9 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
   }
 
   //Save info to localStorage
-  // УЛУЧШЕННАЯ ЛОГИКА КЭШИРОВАНИЯ
-  // const isLoggedIn = isUserLoggedIn(); // переменная уже объявлена выше
 
   if (isLoggedIn) {
-    // ЗАЛОГИНЕННЫЙ: не используем localStorage-кэш, только сервер
-    // Обновляем user-данные в localStorage
+    // Update user data in localStorage
     const existingUser = JSON.parse(localStorage.getItem("user") || "{}");
     const updatedUser = {
       ...existingUser,
@@ -689,15 +664,12 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
       zodiac: info.zodiac,
     };
     localStorage.setItem("user", JSON.stringify(updatedUser));
-    console.log(
-      "✅ Данные пользователя обновлены в localStorage (user):",
-      updatedUser
-    );
+    console.log("✅ User data updated in localStorage (user):", updatedUser);
 
     let result;
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      // Если у пользователя нет даты рождения, но есть зодиак — явно передаем зодиак
+      // If user has no birthday but has zodiac in profile — use it
       const zodiacToSend = info.zodiac || user.zodiac;
       const requestData = {
         name: user.name,
@@ -716,45 +688,43 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       result = await response.json();
       console.log("Server response:", result);
-      // Сохраняем только для совместимости (можно убрать)
+      // Save only for compatibility (can be removed)
       localStorage.setItem("horoscopeResult", JSON.stringify(result));
-      // Для отображения и картинки используем info с актуальным зодиаком
+      // For display and image use info with actual zodiac
       displayHoroscopeResult(result, info);
       hideLoading();
     } catch (err) {
       console.error("Error:", err);
       document.getElementById("horoscope").innerHTML =
-        "Ошибка получения гороскопа.";
+        "Error fetching horoscope.";
       hideLoading();
       return;
     }
     return;
   } else {
-    // ГОСТЬ: обязательно должны быть введены имя и дата рождения
+    // GUEST: name and birthday must be entered
     if (!info.name || !info.birthday) {
       alert("To get a horoscope, you must enter your name and date of birth.");
       hideLoading();
       return;
     }
-    // сначала ищем в localStorage, если нет — запрос к серверу
+    // First, look for cached data in localStorage, if not found — request to the server
     const cachedData = findExistingHoroscopeCache(
       info.name,
       info.birthday,
       info.date
     );
     if (cachedData) {
-      console.log(
-        "✅ Найден действующий кэш, используем сохраненный результат"
-      );
+      console.log("✅ Found valid cache, using saved result");
       setTimeout(() => {
         displayHoroscopeResult(cachedData.data, info);
         hideLoading();
       }, 800);
       return;
     }
-    // Сохраняем данные формы
+    // Save form data
     localStorage.setItem("info", JSON.stringify(info));
-    console.log("✅ Данные формы сохранены в localStorage (info):", info);
+    console.log("✅ Form data saved to localStorage (info):", info);
     let result;
     try {
       const requestData = {
@@ -773,7 +743,7 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       result = await response.json();
       console.log("Server response:", result);
-      // Кэшируем результат
+      // Cache the result
       const cacheKey = getCacheKey(info.name, info.date, info.zodiac);
       const cacheData = { data: result, timestamp: new Date().toISOString() };
       localStorage.setItem(cacheKey, JSON.stringify(cacheData));
@@ -782,7 +752,7 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
     } catch (err) {
       console.error("Error:", err);
       document.getElementById("horoscope").innerHTML =
-        "Ошибка получения гороскопа.";
+        "Error fetching horoscope.";
       hideLoading();
       return;
     }

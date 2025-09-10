@@ -41,6 +41,7 @@
   font-size: 14px;
   transition: all 0.3s;
   backdrop-filter: blur(5px);
+  font-family: "Uncial Antiqua", "MedievalSharp", serif;
 }
 
 .auth-btn:hover {
@@ -51,6 +52,7 @@
 .register-btn {
   background: rgba(102, 126, 234, 0.8);
   border-color: #667eea;
+  font-family: "Uncial Antiqua", "MedievalSharp", serif;
 }
 
 .register-btn:hover {
@@ -84,7 +86,7 @@ body::before {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.3; /* степень прозрачности */
+  opacity: 0.3;
   z-index: -1;
 }
 
@@ -93,7 +95,6 @@ body {
   position: relative;
   padding-top: 0;
   overflow-x: hidden;
-  /* уберите background-image отсюда */
 }
 
 .divider {
@@ -110,8 +111,9 @@ h1 {
   font-size: 6em;
   color: #242323;
   text-align: left;
-  margin: 70px 0 130px 460px;
+  margin: 70px 0 90px 340px;
   opacity: 0.8;
+  font-family: "Cinzel Decorative", "MedievalSharp", serif;
 }
 
 .content {
@@ -149,19 +151,22 @@ h1 {
 }
 
 .form-row label {
-  min-width: 140px;
+  width: 120px;
   margin-right: 10px;
   font-weight: bold;
   color: #333;
+  flex-shrink: 0;
 }
 
 .form-row input[type="text"],
 .form-row input[type="date"] {
+  box-sizing: border-box;
   flex: 1;
   padding: 6px 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
   color: #333;
+  font-family: "MedievalSharp", "Cinzel Decorative", serif;
 }
 
 img#zodiac_img {
@@ -176,7 +181,7 @@ img#zodiac_img {
   height: auto;
 }
 
-/* Стили для приветствия пользователя */
+/* Styles for user greeting */
 .user-welcome {
   text-align: center;
   margin: 20px 0;
@@ -188,6 +193,7 @@ img#zodiac_img {
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  font-family: "Cinzel Decorative", "MedievalSharp", serif;
 }
 
 .user-welcome h2 {
@@ -200,8 +206,9 @@ img#zodiac_img {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 40px; /* расстояние между блоками */
+  gap: 40px; /* distance between blocks */
   margin-top: 30px;
+  font-family: "MedievalSharp", "Cinzel Decorative", serif;
 }
 
 .zodiac-container {
@@ -211,21 +218,20 @@ img#zodiac_img {
   height: 300px;
 }
 
-/* картинка */
 .zodiac-wheel {
   width: 250px;
   height: auto;
   animation: spin 10s linear infinite;
 }
 
-/* сама анимация */
+/* Animation */
 @keyframes spin {
   from {
     transform: rotate(0deg);
-  } /* начало */
+  } /* Start */
   to {
     transform: rotate(360deg);
-  } /* конец */
+  } /* End */
 }
 
 .horoscopeResult {
@@ -244,7 +250,7 @@ img#zodiac_img {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4); /* чёрный overlay, 40% прозрачности */
+  background: rgba(0, 0, 0, 0.4);
   z-index: 1;
   pointer-events: none;
 }
@@ -271,14 +277,12 @@ img#zodiac_img {
 
 .horoscopeResult h2,
 .horoscopeResult p {
-  /*  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.8);
-   text-shadow: 0 2px 8px #fff, 0 1px 2px #000;*/
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7), 0 0 5px rgba(0, 0, 0, 0.3); /* смещение X Y + размытие + цвет */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7), 0 0 5px rgba(0, 0, 0, 0.3); /* gradient X Y + blur + color */
 }
 
-/* === СТИЛИ ДЛЯ ФОРМ АВТОРИЗАЦИИ === */
+/* === styles FOR AUTHORIZATION FORMS === */
 
-/* Общие стили для контейнеров форм */
+/* General styles for form containers */
 .register-container,
 .login-container,
 .profile-container {
@@ -288,6 +292,7 @@ img#zodiac_img {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 15px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  font-family: "MedievalSharp", "Cinzel Decorative", serif;
 }
 
 .register-container,
@@ -295,7 +300,7 @@ img#zodiac_img {
   max-width: 400px;
 }
 
-/* Группы форм */
+/* Groups of forms */
 .form-group {
   margin-bottom: 20px;
 }
@@ -316,6 +321,7 @@ img#zodiac_img {
   font-size: 16px;
   transition: border-color 0.3s;
   box-sizing: border-box;
+  font-family: "MedievalSharp", "Cinzel Decorative", serif;
 }
 
 .form-group input:focus,
@@ -323,8 +329,26 @@ img#zodiac_img {
   outline: none;
   border-color: #667eea;
 }
+.form-group.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding-left: 0;
+  justify-content: flex-start;
+}
 
-/* Сообщения об ошибках и успехе */
+.form-group.checkbox-row input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+  margin: 0;
+  flex: 0 0 auto; /* fixing width */
+}
+
+.form-group.checkbox-row label {
+  margin: 0;
+}
+
 .error-message {
   color: #e74c3c;
   font-size: 14px;
@@ -339,7 +363,6 @@ img#zodiac_img {
   display: none;
 }
 
-/* Кнопки */
 .buttons {
   display: flex;
   gap: 15px;
@@ -358,6 +381,7 @@ img#zodiac_img {
 
 .btn-primary {
   background: linear-gradient(135deg, #9c9d9d 0%, #3c3c3d 100%);
+  font-family: "Uncial Antiqua", "MedievalSharp", serif;
   color: white;
 }
 
@@ -369,6 +393,7 @@ img#zodiac_img {
 .btn-secondary {
   background: #95a5a6;
   color: white;
+  font-family: "Uncial Antiqua", "MedievalSharp", serif;
 }
 
 .btn-secondary:hover {
@@ -384,7 +409,7 @@ img#zodiac_img {
   background: #c0392b;
 }
 
-/* Ссылки */
+/* links */
 .register-link,
 .login-link {
   text-align: center;
@@ -395,6 +420,8 @@ img#zodiac_img {
 .login-link a {
   color: #667eea;
   text-decoration: none;
+  font-size: 24px;
+  font-family: "Uncial Antiqua", "MedievalSharp", serif;
 }
 
 .register-link a:hover,
@@ -402,7 +429,7 @@ img#zodiac_img {
   text-decoration: underline;
 }
 
-/* === СТИЛИ ДЛЯ ПРОФИЛЯ === */
+/* === styles for profile === */
 
 .profile-header {
   text-align: center;
@@ -468,7 +495,7 @@ img#zodiac_img {
   color: #666;
 }
 
-/* Модальные окна для входа и регистрации */
+/* Modal windows for login and registration */
 .login-modal,
 .register-modal {
   position: fixed;
@@ -487,7 +514,7 @@ img#zodiac_img {
   min-width: 320px;
   max-width: 400px;
   width: 100%;
-  background: #fff;
+  background: #f9f5ef;
   border-radius: 15px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   padding: 30px 24px;
@@ -505,7 +532,7 @@ img#zodiac_img {
   }
 }
 
-/* Кнопка закрытия (можно добавить при необходимости) */
+/* Close button (can be added if necessary) */
 .login-container .close-btn,
 .register-container .close-btn {
   position: absolute;
@@ -523,7 +550,15 @@ img#zodiac_img {
   color: #e74c3c;
 }
 
-/* Адаптивность для мобильных устройств */
+#submit_btn {
+  font-family: "Uncial Antiqua", "MedievalSharp", serif;
+}
+
+#user_submit_btn {
+  font-family: "Uncial Antiqua", "MedievalSharp", serif;
+}
+
+/* Mobile styles */
 @media (max-width: 768px) {
   .register-container,
   .login-container,

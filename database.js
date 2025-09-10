@@ -8,30 +8,30 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
 });
 
-// Тестируем подключение
+// Testing connection
 pool.on("connect", () => {
-  console.log("✅ Подключение к PostgreSQL установлено");
+  console.log("✅ Connection to PostgreSQL established");
 });
 
 pool.on("error", (err) => {
-  console.error("❌ Ошибка подключения к PostgreSQL:", err);
+  console.error("❌ Connection error to PostgreSQL:", err);
 });
 
-// Функция для тестирования подключения
+// Function to test connection
 async function testConnection() {
   try {
     const client = await pool.connect();
     const result = await client.query("SELECT NOW()");
-    console.log("✅ Тест подключения успешен:", result.rows[0]);
+    console.log("✅ Connection test successful:", result.rows[0]);
     client.release();
     return true;
   } catch (err) {
-    console.error("❌ Тест подключения failed:", err);
+    console.error("❌ Connection test failed:", err);
     return false;
   }
 }
 
-// Функция для проверки структуры таблиц пользователя
+// Function to check user table structure
 async function checkUserTableStructure() {
   try {
     const client = await pool.connect();
@@ -43,7 +43,7 @@ async function checkUserTableStructure() {
     `);
     client.release();
 
-    console.log("Структура таблицы users:");
+    console.log("Tables in users table:");
     result.rows.forEach((row) => {
       console.log(
         `- ${row.column_name}: ${row.data_type} (nullable: ${row.is_nullable})`
@@ -52,12 +52,12 @@ async function checkUserTableStructure() {
 
     return result.rows;
   } catch (err) {
-    console.error("❌ Ошибка проверки структуры таблицы users:", err);
+    console.error("❌ Connection error to users table structure:", err);
     return null;
   }
 }
 
-// Функция для проверки структуры таблицы гороскопов
+// Function to check horoscope table structure
 async function checkHoroscopeTableStructure() {
   try {
     const client = await pool.connect();
@@ -69,7 +69,7 @@ async function checkHoroscopeTableStructure() {
     `);
     client.release();
 
-    console.log("Структура таблицы horoscops:");
+    console.log("Tables in horoscops table:");
     result.rows.forEach((row) => {
       console.log(
         `- ${row.column_name}: ${row.data_type} (nullable: ${row.is_nullable})`
@@ -78,7 +78,7 @@ async function checkHoroscopeTableStructure() {
 
     return result.rows;
   } catch (err) {
-    console.error("❌ Ошибка проверки структуры таблицы horoscops:", err);
+    console.error("❌ Connection error to horoscops table structure:", err);
     return null;
   }
 }

@@ -1,25 +1,24 @@
-// client-utils.js - Общие утилиты для клиентской части
-
-// Валидация email
+// client-utils.js
+// email
 function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-// Валидация пароля
+// Password
 function isValidPassword(password) {
   return password && password.length >= 6;
 }
 
-// Валидация даты рождения
+// Birthday
 function isValidBirthday(birthday) {
-  if (!birthday) return true; // День рождения не обязателен
+  if (!birthday) return true; // Birthday is not required
   const date = new Date(birthday);
   const now = new Date();
   return date instanceof Date && !isNaN(date) && date < now;
 }
 
-// Определение знака зодиака по дате
+// Identify zodiac sign by date
 function getZodiacSign(date) {
   if (!date || isNaN(date)) return "";
 
@@ -46,14 +45,14 @@ function getZodiacSign(date) {
   return "";
 }
 
-// Функция для определения знака зодиака из строки даты (совместимость)
+// Function to identify zodiac sign from date string (compatibility)
 function getZodiacSignFromString(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
   return getZodiacSign(date);
 }
 
-// Показать ошибку
+// Show error message
 function showError(elementId, message) {
   const element =
     document.getElementById(elementId + "Error") ||
@@ -77,7 +76,7 @@ function showError(elementId, message) {
   }
 }
 
-// Показать успех
+// Show success message
 function showSuccess(message) {
   const successElements = document.querySelectorAll(".success-message");
   successElements.forEach((element) => {
@@ -86,7 +85,7 @@ function showSuccess(message) {
   });
 }
 
-// Очистить ошибки
+// Clear errors
 function clearErrors() {
   const errorElements = document.querySelectorAll(".error-message");
   errorElements.forEach((element) => {
@@ -100,19 +99,19 @@ function clearErrors() {
     element.textContent = "";
   });
 
-  // Убираем красные границы у полей
+  // Remove red borders from fields
   const inputs = document.querySelectorAll("input, select");
   inputs.forEach((input) => {
     input.style.borderColor = "";
   });
 }
 
-// Форматирование даты
+// Formatting date
 function formatDate(date) {
   return new Date(date).toLocaleDateString("ru-RU");
 }
 
-// Логирование (можно отключить в продакшене)
+// Logging (can be disabled in production)
 const DEBUG = true;
 
 function logInfo(message, data = null) {

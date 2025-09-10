@@ -1,18 +1,17 @@
-// modal-register.js - Код для модальной формы регистрации в index.html
-// Использует функции из client-utils.js
+// modal-register.js - Code for the registration modal form in index.html
 
 document.addEventListener("DOMContentLoaded", function () {
   const registerModal = document.getElementById("registerModal");
   const registerForm = document.getElementById("registerForm");
 
   if (!registerForm) {
-    logInfo("Форма регистрации не найдена в index.html");
+    logInfo("Registration form not found in index.html");
     return;
   }
 
-  logSuccess("Модальная форма регистрации инициализирована");
+  logSuccess("Registration modal form initialized");
 
-  // Автоопределение знака зодиака по дате рождения
+  // Auto-detect zodiac sign by birth date
   const birthdayInput = document.getElementById("birthday");
   const zodiacSelect = document.getElementById("zodiac");
   const noBirthdayCheckbox = document.getElementById("noBirthday");
@@ -28,12 +27,12 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Ограничиваем выбор даты (не в будущем)
+    // Limit date selection (not in the future)
     const today = new Date().toISOString().split("T")[0];
     birthdayInput.setAttribute("max", today);
   }
 
-  // Обработка чекбокса "Не хочу указывать день рождения"
+  // Handle "I don't want to specify my birthday" checkbox
   if (noBirthdayCheckbox) {
     noBirthdayCheckbox.addEventListener("change", function () {
       if (this.checked) {
@@ -51,18 +50,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Обработка отправки формы
+  // Handle form submission
   registerForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    logInfo("Отправка формы регистрации...");
-
-    // Очищаем предыдущие ошибки
+    logInfo("Sending registration form...");
+    // Clear previous errors
     clearModalErrors();
 
-    // Валидация
+    // Validation
     if (!validateModalForm()) {
-      logError("Валидация не пройдена");
+      logError("Validation failed");
       return;
     }
 
@@ -78,13 +76,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     //    console.log("Zodiac", document.getElementById("zodiac").value);
 
-    logInfo("Данные формы для регистрации:", {
+    logInfo("Registration form data:", {
       ...formData,
-      password: "***скрыт***",
+      password: "***hidden***",
     });
 
     try {
-      logInfo("Отправляем запрос на сервер...");
+      logInfo("Sending request to server...");
       const response = await fetch("/api/register", {
         method: "POST",
         headers: {
@@ -93,53 +91,53 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify(formData),
       });
 
-      logInfo("Получен ответ от сервера:", response.status);
+      logInfo("Received server response:", response.status);
       const result = await response.json();
-      logInfo("Результат:", result);
+      logInfo("Result:", result);
 
       if (result.success) {
-        logSuccess("Регистрация успешна!");
+        logSuccess("Registration successful!");
         showModalSuccess("Success! Now you can log in.");
 
-        // Сохраняем данные пользователя и закрываем модальное окно
+        // Save user data and close modal
         setTimeout(() => {
           closeRegisterModal();
-          // Автоматически открываем форму входа
+          // Automatically open login form
           showLoginForm();
         }, 2000);
       } else {
-        logError("Ошибка регистрации:", result.message);
+        logError("Registration error:", result.message);
         showModalError(
           "registerGeneralError",
-          result.message || "Ошибка регистрации"
+          result.message || "Registration error"
         );
       }
     } catch (error) {
-      logError("Ошибка сети:", error);
-      showModalError("registerGeneralError", "Ошибка соединения с сервером");
+      logError("Network error:", error);
+      showModalError("registerGeneralError", "Connection error");
     }
   });
 });
 
-// Функции валидации для модальной формы
+// Validation functions for modal form
 function validateModalForm() {
   let isValid = true;
 
-  // Проверка email
+  // Email validation
   const email = document.getElementById("registerEmail").value.trim();
   if (!email || !isValidEmail(email)) {
     showModalError("registerEmail", "Input valid email");
     isValid = false;
   }
 
-  // Проверка имени
+  // Name validation
   const name = document.getElementById("registerName").value.trim();
   if (!name || name.length < 2) {
     showModalError("registerName", "Name must be at least 2 characters long");
     isValid = false;
   }
 
-  // Проверка пароля
+  // Password validation
   const password = document.getElementById("registerPassword").value;
   const confirmPassword = document.getElementById(
     "registerConfirmPassword"
@@ -151,13 +149,13 @@ function validateModalForm() {
     );
     isValid = false;
   }
-  // Проверка совпадения паролей
+  // Confirm password validation
   if (confirmPassword !== undefined && password !== confirmPassword) {
     showModalError("confirmPasswordError", "Passwords do not match");
     isValid = false;
   }
 
-  // Проверка знака зодиака
+  // Zodiac sign validation
   const noBirthday = document.getElementById("noBirthday").checked;
   const birthday = document.getElementById("birthday").value;
   const zodiac = document.getElementById("zodiac").value;
@@ -175,7 +173,7 @@ function validateModalForm() {
     isValid = false;
   }
 
-  // Проверка даты рождения (не в будущем)
+  // Birth date validation (not in the future)
   if (birthday) {
     const today = new Date().toISOString().split("T")[0];
     if (birthday > today) {
@@ -187,7 +185,7 @@ function validateModalForm() {
   return isValid;
 }
 
-// Функции для работы с ошибками в модальной форме (используют общие функции из client-utils.js)
+// Functions for handling errors in the modal form (use common functions from client-utils.js)
 function showModalError(fieldId, message) {
   showError(fieldId, message);
 }

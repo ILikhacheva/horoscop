@@ -58,11 +58,11 @@ function formatDateOnly(date) {
     return result;
   }
 
-  console.log("formatDateOnly: неподдерживаемый формат:", typeof date);
+  console.log("formatDateOnly: unsupported format:", typeof date);
   return null;
 }
 
-// Инициализация OpenAI
+// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -70,22 +70,22 @@ console.log(
   "OpenAI API Key:",
   process.env.OPENAI_API_KEY
     ? process.env.OPENAI_API_KEY.substring(0, 20) + "..."
-    : "НЕ НАЙДЕН"
+    : "No API Key Found"
 );
 
-// Тестируем подключение к базе данных
+// Testing connection to the database
 testConnection();
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Простой тест API
+// Testing API
 
-// Маршрут для проверки существующих таблиц
+// Route to check existing tables
 app.get("/api/check-tables", async (req, res) => {
   try {
-    // Проверяем какие таблицы существуют
+    // Check which tables exist
     const tablesResult = await pool.query(`
       SELECT table_name 
       FROM information_schema.tables 
@@ -94,9 +94,9 @@ app.get("/api/check-tables", async (req, res) => {
     `);
 
     const tables = tablesResult.rows.map((row) => row.table_name);
-    console.log("Найденные таблицы:", tables);
+    console.log("Found tables:", tables);
 
-    // Проверяем структуру таблицы users
+    // Check structure of users table
     let usersStructure = null;
     if (tables.includes("users")) {
       const usersColumns = await pool.query(`
@@ -108,7 +108,7 @@ app.get("/api/check-tables", async (req, res) => {
       usersStructure = usersColumns.rows;
     }
 
-    // Проверяем структуру таблицы horoscops
+    // Check structure of horoscops table
     let horoscopsStructure = null;
     if (tables.includes("horoscops")) {
       const horoscopsColumns = await pool.query(`
@@ -127,10 +127,10 @@ app.get("/api/check-tables", async (req, res) => {
       horoscopsStructure: horoscopsStructure,
     });
   } catch (error) {
-    console.error("Ошибка проверки таблиц:", error);
+    console.error("Error checking tables:", error);
     res.status(500).json({
       success: false,
-      message: "❌ Ошибка при проверке таблиц",
+      message: "❌ Error checking tables",
       error: error.message,
     });
   }
@@ -150,10 +150,10 @@ app.get("/api/users", async (req, res) => {
       users: result.rows,
     });
   } catch (error) {
-    console.error("Ошибка получения пользователей:", error);
+    console.error("Error fetching users:", error);
     res.status(500).json({
       success: false,
-      message: "❌ Ошибка получения пользователей",
+      message: "❌ Error fetching users",
       error: error.message,
     });
   }
@@ -173,7 +173,7 @@ app.post("/api/register", async (req, res) => {
       name,
       birthday,
       zodiac,
-      password: password ? "***скрыт***" : "отсутствует",
+      password: password ? "***hidden***" : "отсутствует",
     });
 
     // Валидация: email, name, password и zodiac обязательны, birthday может быть пустым
@@ -212,7 +212,7 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    // Валидация знака зодиака
+    // Validation of zodiac sign
     if (!isValidZodiac(zodiac)) {
       console.log("❌ Ошибка валидации знака зодиака:", zodiac);
       return res.status(400).json({
@@ -221,49 +221,49 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    console.log("✅ Все валидации пройдены успешно");
+    console.log("✅ All validations passed successfully");
     const client = await pool.connect();
-    console.log("✅ Подключение к БД установлено");
+    console.log("✅ Database connection established");
 
     try {
-      // Проверяем, не существует ли уже пользователь с таким email
-      console.log("🔍 Проверяем существование пользователя с email:", email);
+      // Check if user with such email already exists
+      console.log("🔍 Checking if user with email exists:", email);
       const existingUser = await client.query(
         "SELECT id_user FROM users WHERE email = $1",
         [email]
       );
 
       if (existingUser.rows.length > 0) {
-        console.log("❌ Пользователь уже существует");
+        console.log("❌ User already exists");
         return res.status(400).json({
           success: false,
-          message: "Пользователь с таким email уже существует",
+          message: "User with this email already exists",
         });
       }
 
-      console.log("✅ Пользователь не существует, продолжаем регистрацию");
+      console.log("✅ User does not exist, continuing registration");
 
-      // Хэшируем пароль
-      console.log("🔐 Хэшируем пароль...");
+      // Hash the password
+      console.log("🔐 Hashing password...");
       const saltRounds = 10;
       const passwordHash = await bcrypt.hash(password, saltRounds);
-      console.log("✅ Пароль захэширован");
+      console.log("✅ Password hashed");
 
-      console.log("💾 Выполняем INSERT запрос...");
-      console.log("📝 Параметры:", [
+      console.log("💾 Executing INSERT query...");
+      console.log("📝 Parameters:", [
         name,
         email,
         birthday || null,
         zodiac,
-        "***скрыт***",
+        "***hidden***",
         false,
       ]);
 
-      // Создаем пользователя (используем правильную структуру таблицы)
-      // Для поля DATE в PostgreSQL отправляем строку без преобразования в Date
+      // Creating user (using the correct table structure)
+      // Для поля DATE в PostgreSQL sending string без преобразования в Date
       const birthdayForDB = birthday ? birthday : null;
 
-      console.log("Сохраняем дату в БД:", birthdayForDB);
+      console.log("Saving date to DB:", birthdayForDB);
 
       const result = await client.query(
         `
@@ -297,9 +297,9 @@ app.post("/api/register", async (req, res) => {
         },
       });
     } catch (dbError) {
-      logError("Ошибка базы данных при регистрации:", dbError);
+      logError("Database error during registration:", dbError);
 
-      // Проверяем тип ошибки
+      // Check error type
       if (dbError.code === "23505") {
         // Unique constraint violation
         return res.status(400).json({
@@ -308,15 +308,15 @@ app.post("/api/register", async (req, res) => {
         });
       }
 
-      throw dbError; // Перебрасываем неизвестные ошибки
+      throw dbError; // Rethrow unknown errors
     } finally {
       client.release();
     }
   } catch (error) {
-    logError("Ошибка регистрации:", error);
+    logError("Registration error:", error);
     res.status(500).json({
       success: false,
-      message: "Ошибка сервера при регистрации",
+      message: "Server error during registration",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
@@ -328,14 +328,14 @@ app.post("/api/login", async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email и пароль обязательны",
+        message: "Email и password обязательны",
       });
     }
 
     const client = await pool.connect();
 
-    // Ищем пользователя по email (используем вашу структуру)
-    // Преобразуем birthday в строку формата YYYY-MM-DD для избежания проблем с часовыми поясами
+    // Searching user by email
+    // Converting birthday to string format YYYY-MM-DD to avoid timezone issues
     const userResult = await client.query(
       "SELECT id_user, email, first_name, to_char(birthday, 'YYYY-MM-DD') AS birthday, zodiac, password FROM users WHERE email = $1",
       [email]
@@ -352,26 +352,26 @@ app.post("/api/login", async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Проверяем пароль
+    // Validating password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Неверный email или пароль",
+        message: "Incorrect email or password",
       });
     }
 
-    console.log("Пользователь вошел в систему:", user.email);
+    console.log("User logged in:", user.email);
     console.log(
-      "Дата рождения из БД (строка):",
+      "Birthday from DB (string):",
       user.birthday,
       typeof user.birthday
     );
 
-    // Получаем гороскоп на сегодня, если он есть в БД
+    // Today's horoscope, if it exists in the DB
     let todayHoroscope = null;
-    const today = new Date().toISOString().split("T")[0]; // Формат YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0]; //  YYYY-MM-DD
 
     try {
       const horoscopeClient = await pool.connect();
@@ -390,65 +390,59 @@ app.post("/api/login", async (req, res) => {
             String(responseData).substring(0, 100)
           );
 
-          // Если это уже объект, используем как есть
+          // If it's already an object, use as is
           if (typeof responseData === "object" && responseData !== null) {
             todayHoroscope = responseData;
-            console.log(`✅ Гороскоп загружен как объект`);
+            console.log(`✅ Horoscope loaded as object`);
           } else {
-            // Если это строка, парсим JSON
+            // If it's a string, parse JSON
             todayHoroscope = JSON.parse(responseData);
-            console.log(`✅ Гороскоп загружен через JSON.parse`);
+            console.log(`✅ Horoscope loaded via JSON.parse`);
           }
 
           console.log(
-            `✅ Найден гороскоп на сегодня (${today}) для пользователя ${user.email}`
+            `✅ Found horoscope for today (${today}) for user ${user.email}`
           );
         } catch (parseError) {
+          console.error(`❌ JSON horoscope parsing error:`, parseError.message);
           console.error(
-            `❌ Ошибка парсинга JSON гороскопа:`,
-            parseError.message
-          );
-          console.error(
-            `❌ Содержимое response:`,
+            `❌ Response content:`,
             horoscopeResult.rows[0].response
           );
           todayHoroscope = null;
         }
       } else {
         console.log(
-          `ℹ️ Гороскоп на сегодня (${today}) не найден для пользователя ${user.email}`
+          `ℹ️ Horoscope for today (${today}) not found for user ${user.email}`
         );
       }
       horoscopeClient.release();
     } catch (horoscopeError) {
-      console.error(
-        "❌ Ошибка при получении гороскопа на сегодня:",
-        horoscopeError.message
-      );
+      console.error("❌ Horoscope fetching error:", horoscopeError.message);
     }
 
     res.json({
       success: true,
-      message: "Вход выполнен успешно!",
+      message: "Login successful!",
       user: {
         id: user.id_user,
         email: user.email,
         name: user.first_name,
-        birthday: user.birthday, // теперь это уже строка в правильном формате
+        birthday: user.birthday,
         zodiac: user.zodiac,
       },
-      todayHoroscope: todayHoroscope, // Добавляем гороскоп на сегодня
+      todayHoroscope: todayHoroscope,
     });
   } catch (error) {
-    console.error("Ошибка авторизации:", error);
+    console.error("Error during authorization:", error);
     res.status(500).json({
       success: false,
-      message: "Ошибка сервера при авторизации",
+      message: "Server error during authorization",
     });
   }
 });
 
-// Временный endpoint для отладки дат
+// Temporary endpoint for date debugging
 app.get("/api/debug-dates", async (req, res) => {
   try {
     const client = await pool.connect();
@@ -493,7 +487,7 @@ app.post("/api/update-profile", async (req, res) => {
 
     const client = await pool.connect();
 
-    // Проверяем, существует ли пользователь
+    // Checking if user exists
     const userResult = await client.query(
       "SELECT id_user FROM users WHERE email = $1",
       [email]
@@ -507,12 +501,12 @@ app.post("/api/update-profile", async (req, res) => {
       });
     }
 
-    // Подготавливаем данные для обновления
+    // Preparing data for update
     let updateQuery = "UPDATE users SET first_name = $1";
     let updateParams = [name];
     let paramIndex = 2;
 
-    // birthday и zodiac
+    // birthday and zodiac
     if (birthday) {
       updateQuery += `, birthday = $${paramIndex}`;
       updateParams.push(birthday);
@@ -533,7 +527,7 @@ app.post("/api/update-profile", async (req, res) => {
       }
     }
 
-    // Добавляем пароль, если указан
+    // Adding password if specified
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updateQuery += `, password = $${paramIndex}`;
@@ -544,22 +538,22 @@ app.post("/api/update-profile", async (req, res) => {
     updateQuery += ` WHERE email = $${paramIndex}`;
     updateParams.push(email);
 
-    // Выполняем обновление
+    // Updating
     await client.query(updateQuery, updateParams);
 
     client.release();
 
-    console.log("Профиль пользователя обновлен:", email);
+    console.log("Profile updated:", email);
 
     res.json({
       success: true,
       message: "The profile has been successfully updated!",
     });
   } catch (error) {
-    console.error("Ошибка обновления профиля:", error);
+    console.error("Error updating profile:", error);
     res.status(500).json({
       success: false,
-      message: "Ошибка сервера при обновлении профиля",
+      message: "Server error during profile update",
     });
   }
 });
@@ -617,10 +611,10 @@ app.post("/api/horoscope", async (req, res) => {
       `Запрос гороскопа: пользователь ID ${userId}, дата ${date}, залогинен: ${isLoggedIn}`
     );
 
-    // Для залогиненных пользователей сначала проверяем БД
+    // For logged-in users, first check the database
     if (isLoggedIn && userId) {
       console.log(
-        `🔍 Проверяем БД на наличие гороскопа для пользователя ${userId} на дату ${date}`
+        `🔍 Checking database for horoscope for user ${userId} on date ${date}`
       );
 
       const client = await pool.connect();
@@ -636,35 +630,33 @@ app.post("/api/horoscope", async (req, res) => {
             const responseData = existingHoroscope.rows[0].response;
             let savedResponse;
 
-            // Если это уже объект, используем как есть
+            // If it's already an object, use as is
             if (typeof responseData === "object" && responseData !== null) {
               savedResponse = responseData;
             } else {
-              // Если это строка, парсим JSON
+              // If it's a string, parse JSON
               savedResponse = JSON.parse(responseData);
             }
 
-            // Добавляем небольшую задержку для имитации поиска
+            // Adding a slight delay to simulate search
             await new Promise((resolve) => setTimeout(resolve, 1500));
-            console.log(
-              `⏰ Задержка 1.5 секунды для имитации поиска завершена`
-            );
+            console.log(`⏰ Delay of 1.5 seconds to simulate search completed`);
 
             return res.json(savedResponse);
           } catch (parseError) {
             console.error(
-              `❌ Ошибка парсинга существующего гороскопа:`,
+              `❌ Error parsing existing horoscope:`,
               parseError.message
             );
-            console.log(`ℹ️ Генерируем новый гороскоп из-за ошибки парсинга`);
+            console.log(`ℹ️ Generating new horoscope due to parsing error`);
           }
         } else {
           console.log(
-            `ℹ️ Гороскоп на дату ${date} не найден в БД, генерируем новый`
+            `ℹ️ Horoscope for date ${date} not found in DB, generating new one`
           );
         }
       } catch (dbError) {
-        console.error("❌ Ошибка при проверке БД:", dbError.message);
+        console.error("❌ Error checking DB:", dbError.message);
       } finally {
         client.release();
       }
@@ -683,8 +675,8 @@ app.post("/api/horoscope", async (req, res) => {
     let result;
 
     if (USE_MOCK_DATA === 1) {
-      // Используем тестовые данные
-      console.log("Используются тестовые данные (mock)");
+      // Use mock data
+      console.log("Using mock data");
       result = {
         horoscope: {
           General: `Hello ${name}! As a ${zodiac}, today brings exciting opportunities for personal growth and self-discovery. The stars align favorably for you, encouraging bold decisions and positive changes in your life.`,
@@ -702,7 +694,7 @@ app.post("/api/horoscope", async (req, res) => {
         },
       };
     } else {
-      // Используем OpenAI API
+      // Use OpenAI API
       const prompt = `Ты астролог. Отвечай структурированным JSON с разделами: ${infoSections.join(
         ", "
       )}. 
@@ -725,8 +717,8 @@ app.post("/api/horoscope", async (req, res) => {
       Ответь только JSON, без пояснений и текста.`;
 
       try {
-        console.log("Делаем запрос к OpenAI API");
-        // Вызов OpenAI API для генерации гороскопа
+        console.log("Making request to OpenAI API");
+        // Call OpenAI API for horoscope generation
         const completion = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
           messages: [{ role: "user", content: prompt }],
@@ -734,12 +726,12 @@ app.post("/api/horoscope", async (req, res) => {
         });
 
         result = JSON.parse(completion.choices[0].message.content);
-        console.log("Получен ответ от OpenAI API");
+        console.log("Received response from OpenAI API");
       } catch (openaiError) {
         console.error("OpenAI Error:", openaiError);
 
-        // Fallback на mock данные если OpenAI недоступен
-        console.log("OpenAI недоступен, используем тестовые данные");
+        // Fallback on mock data if OpenAI is unavailable
+        console.log("OpenAI is unavailable, using mock data");
         result = {
           horoscope: {
             General: `Hello ${name}! As a ${zodiac}, today brings exciting opportunities for personal growth and self-discovery. The stars align favorably for you, encouraging bold decisions and positive changes in your life.`,
@@ -759,60 +751,60 @@ app.post("/api/horoscope", async (req, res) => {
       }
     }
 
-    // Сохраняем в БД для залогиненных пользователей
+    // Saving to DB for logged-in users
     if (isLoggedIn && userId) {
       console.log(
-        `Сохраняем гороскоп в БД для пользователя ID: ${userId}, дата: ${date}`
+        `Saving horoscope to DB for user ID: ${userId}, date: ${date}`
       );
 
       const client = await pool.connect();
       try {
-        // Проверяем, существует ли уже гороскоп на эту дату для этого пользователя
+        // Check if horoscope already exists for this user on this date
         const existingHoroscope = await client.query(
           "SELECT id FROM horoscops WHERE id_user = $1 AND horoscop_date = $2",
           [userId, date]
         );
 
         if (existingHoroscope.rows.length === 0) {
-          // Сохраняем новый гороскоп
+          // Save new horoscope
           const insertResult = await client.query(
             "INSERT INTO horoscops (id_user, horoscop_date, response) VALUES ($1, $2, $3) RETURNING id",
             [userId, date, JSON.stringify(result)]
           );
 
           console.log(
-            `✅ Гороскоп сохранен в БД с ID: ${insertResult.rows[0].id}`
+            `✅ Horoscope saved to DB with ID: ${insertResult.rows[0].id}`
           );
         } else {
           console.log(
-            "ℹ️ Гороскоп на эту дату уже существует, пропускаем сохранение"
+            "ℹ️ Horoscope for this date already exists, skipping save"
           );
         }
       } catch (dbError) {
-        console.error("❌ Ошибка сохранения в БД:", dbError.message);
-        console.error("❌ Детали ошибки:", dbError);
+        console.error("❌ Error saving to DB:", dbError.message);
+        console.error("❌ Error details:", dbError);
       } finally {
         client.release();
       }
     } else {
       console.log(
-        "ℹ️ Пользователь не залогинен или userId отсутствует, пропускаем сохранение в БД"
+        "ℹ️ User is not logged in or userId is missing, skipping DB save"
       );
       console.log("isLoggedIn:", isLoggedIn, "userId:", userId);
     }
 
     res.json(result);
   } catch (error) {
-    console.error("❌ КРИТИЧЕСКАЯ ОШИБКА в /api/horoscope:", error);
+    console.error("❌ CRITICAL ERROR in /api/horoscope:", error);
     console.error("❌ Stack trace:", error.stack);
-    console.error("❌ Сообщение ошибки:", error.message);
+    console.error("❌ Error message:", error.message);
     res
       .status(500)
-      .json({ error: "Ошибка получения гороскопа", details: error.message });
+      .json({ error: "Error fetching horoscope", details: error.message });
   }
 });
 
-// Маршрут для получения сохраненных гороскопов
+// Route for fetching saved horoscopes
 app.get("/api/horoscopes", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -828,10 +820,10 @@ app.get("/api/horoscopes", async (req, res) => {
       horoscopes: result.rows,
     });
   } catch (error) {
-    console.error("Ошибка получения гороскопов:", error);
+    console.error("Error fetching horoscopes:", error);
     res.status(500).json({
       success: false,
-      message: "❌ Ошибка получения гороскопов",
+      message: "❌ Error fetching horoscopes",
       error: error.message,
     });
   }
@@ -839,5 +831,5 @@ app.get("/api/horoscopes", async (req, res) => {
 
 app.listen(3000, () => {
   console.log("🚀 Server is running on port 3000");
-  console.log("Приложение доступно: http://localhost:3000");
+  console.log("Application is available at: http://localhost:3000");
 });

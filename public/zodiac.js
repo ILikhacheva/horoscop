@@ -1,5 +1,5 @@
 // zodiac.js
-// Единый список знаков зодиака для всех форм
+// List of zodiac signs for all forms
 
 const ZODIAC_SIGNS = [
   { value: "", label: "Select your zodiac sign" },
