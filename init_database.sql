@@ -35,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_horoscops_user_date ON horoscops(id_user, horosco
 CREATE INDEX IF NOT EXISTS idx_horoscops_date ON horoscops(horoscop_date);
 
 -- Функция для автоматического обновления updated_at
-CREATE OR REPLACE FUNCTION IF NOT EXISTS update_updated_at_column
+CREATE OR REPLACE FUNCTION update_updated_at_column
 ()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -45,7 +45,7 @@ END;
 $$ language 'plpgsql';
 
 -- Триггер для обновления updated_at в таблице users
-CREATE TRIGGER IF NOT EXISTS update_users_updated_at 
+CREATE TRIGGER update_users_updated_at 
     BEFORE
 UPDATE ON users 
     FOR EACH ROW
