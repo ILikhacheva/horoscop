@@ -7,8 +7,20 @@ const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,*/
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
 });
+
+(async () => {
+  try {
+    const res = await pool.query("SET search_path TO public");
+    console.log("✅ search_path установлен в public");
+
+    const users = await pool.query("SELECT first_name, email FROM users");
+    console.table(users.rows);
+  } catch (err) {
+    console.error(err);
+  }
+})();
 
 // Testing connection
 pool.on("connect", () => {
