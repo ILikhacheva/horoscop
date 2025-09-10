@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="style.css" />
     <script src="zodiac.js"></script>
     <script src="client-utils.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   </head>
   <body>
     <div
@@ -83,6 +84,10 @@
           <label for="user_date">Input date:</label>
           <input type="date" id="user_date" placeholder="Input date" />
         </div>
+        <div
+          class="g-recaptcha"
+          data-sitekey="6LewE8UrAAAAAC9u_jNdewlk1oVzEoeyDWPXCEV2"
+        ></div>
         <button type="submit" id="submit_btn">Find out</button>
       </form>
     </div>

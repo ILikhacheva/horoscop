@@ -597,10 +597,25 @@ app.get("/api/user-horoscopes/:userId", async (req, res) => {
   }
 });
 
+//const fetch = require("node-fetch"); // Check reCAPTCHA
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+async function verifyCaptcha(token) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  const response = await fetch(
+    `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`,
+    { method: "POST" }
+  );
+  const data = await response.json();
+  return data.success;
+}
+
 // Маршрут для получения гороскопов
 app.post("/api/horoscope", async (req, res) => {
   try {
-    const { name, zodiac, date, birthday, isLoggedIn, userId } = req.body || {};
+    const { name, zodiac, date, birthday, isLoggedIn, userId, captcha } =
+      req.body || {};
 
     // Переменная для переключения между AI и mock данными
     // 0 = использовать OpenAI API, 1 = использовать тестовые данные
@@ -609,6 +624,14 @@ app.post("/api/horoscope", async (req, res) => {
     console.log(
       `Запрос гороскопа: пользователь ID ${userId}, дата ${date}, залогинен: ${isLoggedIn}`
     );
+
+    // Проверка reCAPTCHA для незалогиненных пользователей
+    if (!isLoggedIn) {
+      const captchaValid = await verifyCaptcha(captcha);
+      if (!captchaValid) {
+        return res.status(400).json({ error: "Капча не пройдена" });
+      }
+    }
 
     // For logged-in users, first check the database
     if (isLoggedIn && userId) {

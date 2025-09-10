@@ -725,6 +725,19 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
     // Save form data
     localStorage.setItem("info", JSON.stringify(info));
     console.log("✅ Form data saved to localStorage (info):", info);
+
+    //Captcha
+
+    if (!isLoggedIn) {
+      const captchaResponse = grecaptcha.getResponse();
+      if (!captchaResponse) {
+        alert("Please confirm that you are not a robot!");
+        hideLoading();
+        return;
+      }
+      info.captcha = captchaResponse; // Add token to info object
+    }
+
     let result;
     try {
       const requestData = {
@@ -733,6 +746,7 @@ document.getElementById("submit_btn").addEventListener("click", async (e) => {
         date: info.date,
         birthday: info.birthday,
         isLoggedIn: false,
+        captcha: info.captcha, // добавлено поле captcha
       };
       const response = await fetch("/api/horoscope", {
         method: "POST",
