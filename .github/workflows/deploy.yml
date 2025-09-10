@@ -25,12 +25,24 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Run database migrations via Fly proxy
-        if: success()  
+        if: success()  # выполняется только если деплой успешен
         run: |
+          # Устанавливаем psql
           sudo apt-get update && sudo apt-get install -y postgresql-client
-         
-          fly proxy 5432:5432 -a little-snowflake-3053 &
-          sleep 5
-          psql "postgres://horoscop:N5NCdtk5HZmM6fU@localhost:5432/<databasename>" -f init_database.sql
+
+          # Обеспечиваем доступность flyctl
+          export PATH="$HOME/.fly/bin:$PATH"
+
+          # Запускаем fly proxy в фоне
+          flyctl proxy 5432:5432 -a little-snowflake-3053 &
+          PROXY_PID=$!
+          echo "Waiting for fly proxy to start..."
+          sleep 10  # ждём, чтобы прокси поднялся
+
+          # Выполняем SQL через локальный порт
+          psql "postgres://horoscop:N5NCdtk5HZmM6fU@localhost:5432/postgres" -f init_database.sql
+
+          # Завершаем прокси
+          kill $PROXY_PID
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
