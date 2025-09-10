@@ -1,0 +1,48 @@
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:  # для ручного запуска из интерфейса
+
+jobs:
+  deploy:
+    name: Deploy app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly.io
+        id: fly_deploy
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Run database migrations via Fly proxy
+        if: success()  # выполняется только если деплой успешен
+        run: |
+          # Устанавливаем psql
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+
+          # Обеспечиваем доступность flyctl
+          export PATH="$HOME/.fly/bin:$PATH"
+
+          # Запускаем fly proxy в фоне
+          flyctl proxy 5432:5432 -a little-snowflake-3053 &
+          PROXY_PID=$!
+          echo "Waiting for fly proxy to start..."
+          sleep 10  # ждём, чтобы прокси поднялся
+
+          # Выполняем SQL через локальный порт
+          psql "postgres://horoscop:N5NCdtk5HZmM6fU@localhost:5432/postgres" -f init_database.sql
+
+          # Завершаем прокси
+          kill $PROXY_PID
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

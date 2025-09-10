@@ -1,13 +1,11 @@
 -- Создание базы данных для приложения гороскопов
 
 -- Удаляем таблицы если они существуют (осторожно!)
-DROP TABLE IF EXISTS horoscops
-CASCADE;
-DROP TABLE IF EXISTS users
-CASCADE;
+-- DROP TABLE IF EXISTS horoscops CASCADE;
+-- DROP TABLE IF EXISTS users CASCADE;
 
 -- Создание таблицы пользователей
-CREATE TABLE users
+CREATE TABLE IF NOT EXISTS users
 (
     id_user SERIAL PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -21,7 +19,7 @@ CREATE TABLE users
 );
 
 -- Создание таблицы гороскопов
-CREATE TABLE horoscops
+CREATE TABLE IF NOT EXISTS horoscops
 (
     id SERIAL PRIMARY KEY,
     id_user INTEGER REFERENCES users(id_user) ON DELETE CASCADE,
@@ -31,13 +29,13 @@ CREATE TABLE horoscops
 );
 
 -- Создание индексов для оптимизации
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_zodiac ON users(zodiac);
-CREATE INDEX idx_horoscops_user_date ON horoscops(id_user, horoscop_date);
-CREATE INDEX idx_horoscops_date ON horoscops(horoscop_date);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_zodiac ON users(zodiac);
+CREATE INDEX IF NOT EXISTS idx_horoscops_user_date ON horoscops(id_user, horoscop_date);
+CREATE INDEX IF NOT EXISTS idx_horoscops_date ON horoscops(horoscop_date);
 
 -- Функция для автоматического обновления updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column
+CREATE OR REPLACE FUNCTION IF NOT EXISTS update_updated_at_column
 ()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -47,7 +45,7 @@ END;
 $$ language 'plpgsql';
 
 -- Триггер для обновления updated_at в таблице users
-CREATE TRIGGER update_users_updated_at 
+CREATE TRIGGER IF NOT EXISTS update_users_updated_at 
     BEFORE
 UPDATE ON users 
     FOR EACH ROW
@@ -60,17 +58,5 @@ INSERT INTO users
 VALUES
     ('Анна', 'anna@example.com', '1990-03-15', 'Pisces', '$2b$10$dummy.hash.for.testing.purposes.only', false),
     ('Петр', 'petr@example.com', '1985-07-22', 'Cancer', '$2b$10$dummy.hash.for.testing.purposes.only', true),
-    ('Мария', 'maria@example.com', '1992-11-08', 'Scorpio', '$2b$10$dummy.hash.for.testing.purposes.only', false);
-
--- Просмотр созданных таблиц
-SELECT 'Таблица users создана' as status;
-SELECT table_name, column_name, data_type, is_nullable
-FROM information_schema.columns
-WHERE table_name = 'users' AND table_schema = 'public'
-ORDER BY ordinal_position;
-
-SELECT 'Таблица horoscops создана' as status;
-SELECT table_name, column_name, data_type, is_nullable
-FROM information_schema.columns
-WHERE table_name = 'horoscops' AND table_schema = 'public'
-ORDER BY ordinal_position;
+    ('Мария', 'maria@example.com', '1992-11-08', 'Scorpio', '$2b$10$dummy.hash.for.testing.purposes.only', false)
+ON CONFLICT (email) DO NOTHING;
