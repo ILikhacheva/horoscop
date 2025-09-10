@@ -11,18 +11,22 @@ const pool = new Pool({
   options: "-c search_path=public"
 });
 
+(async () => {
+  try {
+    const res = await pool.query('SET search_path TO public');
+    console.log("✅ search_path установлен в public");
+
+    const users = await pool.query('SELECT first_name, email FROM users');
+    console.table(users.rows);
+  } catch (err) {
+    console.error(err);
+  }
+})();
+
 // Тестируем подключение
-pool.on("connect", async () => {
+pool.on("connect", ()=>{
   console.log("✅ Подключение к PostgreSQL установлено");
   console.log("DATABASE_URL =", process.env.DATABASE_URL);
-
-  try {
-    const res = await pool.query('SELECT first_name, email FROM public.users');
-    console.log("📋 Содержимое таблицы users:");
-    console.table(res.rows);
-  } catch (err) {
-    console.error("❌ Ошибка при чтении таблицы users:", err);
-  }
 });
 
 pool.on("error", (err) => {
