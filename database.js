@@ -7,12 +7,15 @@ const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,*/
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  options: "-c search_path=public"
 });
 
 // Тестируем подключение
 pool.on("connect", () => {
   console.log("✅ Подключение к PostgreSQL установлено");
+  console.log("DATABASE_URL =", process.env.DATABASE_URL);
+
 });
 
 pool.on("error", (err) => {
