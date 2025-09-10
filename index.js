@@ -608,6 +608,7 @@ async function verifyCaptcha(token) {
     { method: "POST" }
   );
   const data = await response.json();
+  console.log("reCAPTCHA verification result:", data);
   return data.success;
 }
 
