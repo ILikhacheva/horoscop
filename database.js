@@ -8,8 +8,6 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,*/
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
-  options: '-c search_path=public'
-
 });
 
 // Тестируем подключение
