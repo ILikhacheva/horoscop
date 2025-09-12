@@ -747,3 +747,20 @@ function clearProfileErrors() {
     element.textContent = "";
   });
 }
+
+// Information box functionality
+
+function closeInfoBox() {
+  document.getElementById("infoBox").style.display = "none";
+  // Save the mark that the user closed the window
+  localStorage.setItem("infoBoxClosed", "true");
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Check if the user closed the window earlier
+  const wasClosed = localStorage.getItem("infoBoxClosed");
+  if (!wasClosed) {
+    document.getElementById("infoBox").style.display = "block";
+  }
+});
+//

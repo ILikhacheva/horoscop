@@ -14,6 +14,26 @@
     <script src="client-utils.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   </head>
+
+  <!-- Information window -->
+  <div id="infoBox" class="info-box">
+    <button class="close-btn" onclick="closeInfoBox()">×</button>
+    <h3>Information</h3>
+    <p>
+      Welcome!
+      <br /><br />
+      This is an educational project demonstrating the capabilities of
+      generating personalized horoscopes using AI.
+      <br /><br />
+      You can generate a horoscope twice, after which a test text will be
+      displayed. For users who are not logged in, the default response will be a
+      test message.
+      <br /><br />
+      The project showcases the interface, user data handling, basic application
+      logic, and the integration of AI technology.
+    </p>
+  </div>
+
   <body>
     <div
       class="zodiac-container"
