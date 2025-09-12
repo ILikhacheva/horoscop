@@ -630,3 +630,104 @@ img#zodiac_img {
     transform: translateX(0);
   }
 }
+
+footer {
+  text-align: center;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #555;
+}
+
+.zodiac-carousel-footer {
+  width: 360px; /* 3 иконки по 100px + отступы */
+  margin: 0 auto 12px auto;
+  overflow: hidden;
+  border-radius: 18px;
+  /* background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); */
+  padding: 6px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.zodiac-track-footer {
+  display: flex;
+  align-items: center;
+  animation: zodiacScroll 20s linear infinite;
+}
+
+.zodiac-track-footer img {
+  width: 100px;
+  height: 100px;
+  margin: 0 10px;
+  opacity: 0.92;
+  transition: transform 0.2s, opacity 0.2s;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(120, 120, 120, 0.12);
+}
+
+.zodiac-track-footer img:hover {
+  transform: scale(1.13) rotate(-6deg);
+  opacity: 1;
+  box-shadow: 0 4px 16px rgba(120, 120, 120, 0.18);
+}
+@keyframes zodiacScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-420px);
+  } /* 4 иконки (100px + 10px*2) для плавности */
+}
+
+.footer-info {
+  margin-top: 10px;
+  text-align: center;
+  color: #555;
+  font-family: "Cinzel Decorative", "MedievalSharp", serif;
+}
+
+.footer-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.footer-author {
+  font-size: 1em;
+  margin-bottom: 4px;
+}
+
+.footer-author a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.footer-author a:hover {
+  text-decoration: underline;
+}
+
+.footer-desc {
+  font-size: 0.95em;
+  color: #888;
+}
+
+@media (max-width: 500px) {
+  .zodiac-carousel-footer {
+    width: 180px;
+  }
+  .zodiac-track-footer img {
+    width: 50px;
+    height: 50px;
+    margin: 0 4px;
+  }
+  @keyframes zodiacScroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-210px);
+    }
+  }
+}
