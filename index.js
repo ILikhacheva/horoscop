@@ -626,11 +626,19 @@ app.post("/api/horoscope", async (req, res) => {
       `Запрос гороскопа: пользователь ID ${userId}, дата ${date}, залогинен: ${isLoggedIn}`
     );
 
-    // Проверка reCAPTCHA для незалогиненных пользователей
+    // Проверка reCAPTCHA для незалогиненных пользователей только не на localhost
     if (!isLoggedIn) {
-      const captchaValid = await verifyCaptcha(captcha);
-      if (!captchaValid) {
-        return res.status(400).json({ error: "Капча не пройдена" });
+      const isLocalhost =
+        req.hostname === "localhost" ||
+        req.hostname === "127.0.0.1" ||
+        req.hostname === "::1";
+      if (!isLocalhost) {
+        const captchaValid = await verifyCaptcha(captcha);
+        if (!captchaValid) {
+          return res.status(400).json({ error: "Капча не пройдена" });
+        }
+      } else {
+        console.log("[dev] Капча отключена для localhost");
       }
     }
 
